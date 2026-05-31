@@ -102,7 +102,13 @@
     try { chrome.runtime.sendMessage({ type: "STORE_DATA", data: d }); } catch(e) {}
   }
 
-  // ── Trouve le composer et injecte à l'intérieur ─────────────────────────
+  // ── Détecte si on est sur Claude Code (/code) ──────────────────────────
+
+  function isClaudeCode() {
+    return location.pathname.startsWith("/code");
+  }
+
+  // ── Trouve le composer ──────────────────────────────────────────────────
 
   function findComposer() {
     const ta = document.querySelector("textarea")
@@ -128,8 +134,16 @@
     if (!composer) return;
 
     gaugeEl = buildGauge();
-    composer.appendChild(gaugeEl);
-    log("Injected ✓");
+
+    if (isClaudeCode()) {
+      // Sur Claude Code, injecte après le composer pour ne pas bloquer l'input
+      composer.parentElement.insertBefore(gaugeEl, composer.nextSibling);
+    } else {
+      // Sur Claude normal, injecte à l'intérieur du composer (sous l'input)
+      composer.appendChild(gaugeEl);
+    }
+
+    log("Injected ✓", isClaudeCode() ? "(Claude Code)" : "(Claude normal)");
     loadAndRender();
     setInterval(loadAndRender, 60000);
   }
