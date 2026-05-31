@@ -45,39 +45,35 @@ function render(data) {
   }
 }
 
+async function fetchDirect() {
+  try {
+    const orgsRes = await fetch("https://claude.ai/api/organizations", { credentials: "include" });
+    if (!orgsRes.ok) return null;
+    const orgs = await orgsRes.json();
+    const orgId = orgs?.[0]?.uuid || orgs?.[0]?.id;
+    if (!orgId) return null;
+    const res = await fetch(`https://claude.ai/api/organizations/${orgId}/usage`, { credentials: "include" });
+    return res.ok ? await res.json() : null;
+  } catch(e) { return null; }
+}
+
 async function load() {
   document.getElementById("loading").style.display = "block";
   document.getElementById("main").style.display = "none";
 
-  // Essaie d'abord les données en cache
+  // 1. Essaie le cache du background
   const cached = await browser.runtime.sendMessage({ type: "GET_DATA" });
   if (cached?.data) { render(cached.data); return; }
 
-  // Sinon demande à l'onglet actif de charger
-  const tabs = await browser.tabs.query({ active: true, currentWindow: true });
-  const tab = tabs[0];
-  if (tab?.url?.includes("claude.ai")) {
-    // Injecte un script pour récupérer les données fraîches
-    browser.tabs.executeScript(tab.id, {
-      code: `
-        (async () => {
-          try {
-            const orgRes = await fetch('/api/organizations', { credentials: 'include' });
-            const orgs = await orgRes.json();
-            const id = orgs?.[0]?.uuid || orgs?.[0]?.id;
-            if (!id) return null;
-            const res = await fetch('/api/organizations/' + id + '/usage', { credentials: 'include' });
-            return await res.json();
-          } catch(e) { return null; }
-        })()
-      `,
-      matchAboutBlank: false
-    }).then(results => {
-      render(results?.[0] || null);
-    }).catch(() => render(null));
-  } else {
-    render(null);
+  // 2. Fetch direct depuis le popup (fonctionne sans onglet claude.ai ouvert)
+  const data = await fetchDirect();
+  if (data) {
+    browser.runtime.sendMessage({ type: "STORE_DATA", data });
+    render(data);
+    return;
   }
+
+  render(null);
 }
 
 document.getElementById("btn-refresh").addEventListener("click", load);
