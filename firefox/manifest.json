@@ -1,0 +1,38 @@
+{
+  "manifest_version": 2,
+  "name": "Claude Usage Tracker",
+  "version": "3.0.0",
+  "description": "Affiche la vraie jauge d'utilisation Claude (session 5h + hebdo 7j) dans les conversations.",
+  "icons": {
+    "48": "icons/icon48.png",
+    "96": "icons/icon96.png"
+  },
+  "browser_action": {
+    "default_icon": { "48": "icons/icon48.png" },
+    "default_popup": "popup.html",
+    "default_title": "Claude Usage Tracker"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://claude.ai/*"],
+      "js": ["content.js"],
+      "css": ["gauge.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": false
+  },
+  "permissions": [
+    "storage",
+    "tabs",
+    "*://claude.ai/*"
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "claude-usage-tracker@extension",
+      "strict_min_version": "91.0"
+    }
+  }
+}
