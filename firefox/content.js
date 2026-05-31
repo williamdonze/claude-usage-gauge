@@ -185,7 +185,7 @@
     if (document.getElementById("cug-pet")) return;
     petEl = buildPet();
     document.body.appendChild(petEl);
-    positionPet();
+    requestAnimationFrame(positionPet);
     window.addEventListener("resize", positionPet);
     petLooping = false;
     petFrame = 0;
