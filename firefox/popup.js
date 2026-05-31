@@ -4,8 +4,11 @@ function formatResetIn(isoDate) {
   if (!isoDate) return "—";
   const diff = new Date(isoDate) - Date.now();
   if (diff <= 0) return "reset imminent";
-  const h = Math.floor(diff / 3600000);
-  const m = Math.floor((diff % 3600000) / 60000);
+  const totalMinutes = Math.floor(diff / 60000);
+  const d = Math.floor(totalMinutes / 1440);
+  const h = Math.floor((totalMinutes % 1440) / 60);
+  const m = totalMinutes % 60;
+  if (d > 0) return h > 0 ? `${d}j ${h}h` : `${d}j`;
   if (h > 0) return `${h}h ${m.toString().padStart(2,"0")}m`;
   return `${m}m`;
 }
