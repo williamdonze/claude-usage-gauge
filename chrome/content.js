@@ -123,11 +123,63 @@
     if (pct7)  { pct7.textContent = `${Math.round(p7)}%`; pct7.style.color = color(p7); }
 
     try { chrome.runtime.sendMessage({ type: "STORE_DATA", data: d }); } catch(e) {}
+
+    if (Math.round(p5) === 67) showPet();
+    else hidePet();
+  }
+
+  // ── Animation 67% ──────────────────────────────────────────────────────
+
+  const PET_FRAMES = [
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><style>.st0{fill:#d97757}.st1{fill:#c0694e}</style></defs><polygon class="st1" points="883.2 343.7 807.2 343.7 807.2 419.6 807.2 495.6 883.2 495.6 883.2 419.6 883.2 343.7"/><polygon class="st0" points="883.2 343.7 883.2 419.6 883.2 495.6 959.2 495.6 959.2 419.6 959.2 343.7 883.2 343.7"/><polygon class="st1" points="199.3 343.7 123.3 343.7 123.3 419.6 123.3 495.6 199.3 495.6 199.3 419.6 199.3 343.7"/><polygon class="st0" points="123.3 343.7 47.3 343.7 47.3 419.6 47.3 495.6 123.3 495.6 123.3 419.6 123.3 343.7"/><rect x="275.3" y="267.7" width="76" height="76"/><rect x="655.2" y="267.7" width="76" height="76"/><path class="st0" d="M807.2,343.7v-152H199.3v608h76v-76h76v76h76v-76h152v76h76v-76h76v76h76v-456ZM351.3,343.7h-76v-76h76v76ZM731.2,343.7h-76v-76h76v76Z"/></svg>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><style>.st0{fill:#d97757}.st1{fill:#c0694e}</style></defs><polygon class="st1" points="883.2 393.7 807.2 393.7 807.2 469.6 807.2 545.6 883.2 545.6 883.2 469.6 883.2 393.7"/><polygon class="st0" points="883.2 393.7 883.2 469.6 883.2 545.6 959.2 545.6 959.2 469.6 959.2 393.7 883.2 393.7"/><polygon class="st1" points="199.3 293.7 123.3 293.7 123.3 369.6 123.3 445.6 199.3 445.6 199.3 369.6 199.3 293.7"/><polygon class="st0" points="123.3 293.7 47.3 293.7 47.3 369.6 47.3 445.6 123.3 445.6 123.3 369.6 123.3 293.7"/><rect x="275.3" y="267.7" width="76" height="76"/><rect x="655.2" y="267.7" width="76" height="76"/><path class="st0" d="M807.2,343.7v-152H199.3v608h76v-76h76v76h76v-76h152v76h76v-76h76v76h76v-456ZM351.3,343.7h-76v-76h76v76ZM731.2,343.7h-76v-76h76v76Z"/></svg>`,
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><style>.st0{fill:#d97757}.st1{fill:#c0694e}</style></defs><polygon class="st1" points="883.2 293.7 807.2 293.7 807.2 369.6 807.2 445.6 883.2 445.6 883.2 369.6 883.2 293.7"/><polygon class="st0" points="883.2 293.7 883.2 369.6 883.2 445.6 959.2 445.6 959.2 369.6 959.2 293.7 883.2 293.7"/><polygon class="st1" points="199.3 393.7 123.3 393.7 123.3 469.6 123.3 545.6 199.3 545.6 199.3 469.6 199.3 393.7"/><polygon class="st0" points="123.3 393.7 47.3 393.7 47.3 469.6 47.3 545.6 123.3 545.6 123.3 469.6 123.3 393.7"/><rect x="275.3" y="267.7" width="76" height="76"/><rect x="655.2" y="267.7" width="76" height="76"/><path class="st0" d="M807.2,343.7v-152H199.3v608h76v-76h76v76h76v-76h152v76h76v-76h76v76h76v-456ZM351.3,343.7h-76v-76h76v76ZM731.2,343.7h-76v-76h76v76Z"/></svg>`,
+  ];
+
+  let petEl = null;
+  let petTimer = null;
+  let petFrame = 0;
+  let petLooping = false;
+
+  function buildPet() {
+    const el = document.createElement("div");
+    el.id = "cug-pet";
+    el.innerHTML = PET_FRAMES[0];
+    return el;
+  }
+
+  function stepPet() {
+    if (!petEl) return;
+    if (!petLooping) {
+      // Frame 0 jouée, on passe en boucle 1↔2
+      petEl.innerHTML = PET_FRAMES[1];
+      petFrame = 1;
+      petLooping = true;
+      petTimer = setInterval(() => {
+        petFrame = petFrame === 1 ? 2 : 1;
+        if (petEl) petEl.innerHTML = PET_FRAMES[petFrame];
+      }, 400);
+    }
+  }
+
+  function showPet() {
+    if (document.getElementById("cug-pet")) return;
+    petEl = buildPet();
+    document.body.appendChild(petEl);
+    petLooping = false;
+    petFrame = 0;
+    // Frame 0 pendant 600ms puis boucle
+    setTimeout(stepPet, 600);
+  }
+
+  function hidePet() {
+    if (petTimer) { clearInterval(petTimer); petTimer = null; }
+    if (petEl) { petEl.remove(); petEl = null; }
+    petLooping = false;
+    petFrame = 0;
   }
 
 
-
-  // ── Pages où la jauge ne doit pas apparaître ───────────────────────────
 
   function isExcludedPage() {
     const p = location.pathname;
