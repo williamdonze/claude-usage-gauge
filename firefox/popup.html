@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Claude Usage</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Thème détecté depuis la préférence système (synchro avec Claude) ── */
+    :root {
+      --bg:       #f9f9f8;
+      --surface:  #ffffff;
+      --border:   rgba(0,0,0,0.08);
+      --text:     #1a1a1a;
+      --muted:    rgba(0,0,0,0.4);
+      --subtle:   rgba(0,0,0,0.06);
+      --shadow:   0 1px 3px rgba(0,0,0,0.08);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg:      #1e1e1e;
+        --surface: #2a2a2a;
+        --border:  rgba(255,255,255,0.08);
+        --text:    #e8e8e6;
+        --muted:   rgba(255,255,255,0.4);
+        --subtle:  rgba(255,255,255,0.05);
+        --shadow:  0 1px 4px rgba(0,0,0,0.3);
+      }
+    }
+
+    body {
+      width: 300px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 13px;
+      padding: 16px;
+    }
+
+    /* ── Header ── */
+    header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo img { width: 32px; height: 32px; }
+
+    h1 {
+      font-size: 13px; font-weight: 700;
+      letter-spacing: 0.01em;
+      line-height: 1.2;
+    }
+    h1 span {
+      display: block;
+      font-size: 10px; font-weight: 400;
+      color: var(--muted);
+      letter-spacing: 0.02em;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+
+    .card-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--muted);
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .card-pct {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+
+    .card-sub {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    /* ── Track ── */
+    .track {
+      height: 5px;
+      background: var(--subtle);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .fill {
+      height: 100%;
+      border-radius: 999px;
+      width: 0%;
+      transition: width 0.7s cubic-bezier(0.16,1,0.3,1), background 0.4s;
+    }
+
+    /* ── Bouton ── */
+    button {
+      width: 100%;
+      padding: 9px;
+      margin-top: 4px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      box-shadow: var(--shadow);
+    }
+    button:hover { background: var(--subtle); }
+    button:active { transform: scale(0.98); }
+
+    #loading {
+      text-align: center;
+      padding: 24px 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    #main { display: none; }
+    #p-nodata {
+      text-align: center;
+      color: var(--muted);
+      font-size: 11px;
+      font-style: italic;
+      padding: 4px 0 8px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <img src="icons/icon96.png" alt="Claude" />
+    </div>
+    <h1>Claude Usage<span>Données temps réel</span></h1>
+  </header>
+
+  <div id="loading">Chargement…</div>
+
+  <div id="main">
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-label">⏱ Session 5h</div>
+          <div class="card-sub" id="p-5h-reset"></div>
+        </div>
+        <div class="card-pct" id="p-5h-val">—</div>
+      </div>
+      <div class="track"><div class="fill" id="p-5h-fill"></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-label">📅 7 jours</div>
+          <div class="card-sub" id="p-7d-reset"></div>
+        </div>
+        <div class="card-pct" id="p-7d-val">—</div>
+      </div>
+      <div class="track"><div class="fill" id="p-7d-fill"></div></div>
+    </div>
+
+    <div id="p-nodata">Ouvrez claude.ai pour charger les données</div>
+    <button id="btn-refresh">↻ Actualiser</button>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

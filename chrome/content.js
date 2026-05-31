@@ -102,6 +102,8 @@
     try { chrome.runtime.sendMessage({ type: "STORE_DATA", data: d }); } catch(e) {}
   }
 
+
+
   // ── Détecte si on est sur Claude Code (/code) ──────────────────────────
 
   function isClaudeCode() {
