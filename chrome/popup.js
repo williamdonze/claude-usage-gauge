@@ -45,36 +45,46 @@ function render(data) {
   }
 }
 
-async function fetchDirect() {
-  try {
-    const orgsRes = await fetch("https://claude.ai/api/organizations", { credentials: "include" });
-    if (!orgsRes.ok) return null;
-    const orgs = await orgsRes.json();
-    const orgId = orgs?.[0]?.uuid || orgs?.[0]?.id;
-    if (!orgId) return null;
-    const res = await fetch(`https://claude.ai/api/organizations/${orgId}/usage`, { credentials: "include" });
-    return res.ok ? await res.json() : null;
-  } catch(e) { return null; }
+function fetchViaTab(tabId) {
+  return new Promise((resolve) => {
+    chrome.scripting.executeScript({
+      target: { tabId },
+      func: async () => {
+        try {
+          const orgsRes = await fetch("/api/organizations", { credentials: "include" });
+          const orgs = await orgsRes.json();
+          const id = orgs?.[0]?.uuid || orgs?.[0]?.id;
+          if (!id) return null;
+          const res = await fetch(`/api/organizations/${id}/usage`, { credentials: "include" });
+          return res.ok ? await res.json() : null;
+        } catch(e) { return null; }
+      }
+    }, (results) => resolve(results?.[0]?.result || null));
+  });
 }
 
 async function load() {
   document.getElementById("loading").style.display = "block";
   document.getElementById("main").style.display = "none";
 
-  // 1. Essaie le cache du background
-  chrome.runtime.sendMessage({ type: "GET_DATA" }, async (cached) => {
-    if (cached?.data) { render(cached.data); return; }
+  // 1. Cache du background
+  const cached = await new Promise((r) => chrome.runtime.sendMessage({ type: "GET_DATA" }, r));
+  if (cached?.data) { render(cached.data); return; }
 
-    // 2. Fetch direct depuis le popup (fonctionne sans onglet claude.ai ouvert)
-    const data = await fetchDirect();
+  // 2. N'importe quel onglet claude.ai ouvert
+  const tabs = await new Promise((r) => chrome.tabs.query({ url: "*://claude.ai/*" }, r));
+  if (tabs.length > 0) {
+    const data = await fetchViaTab(tabs[0].id);
     if (data) {
       chrome.runtime.sendMessage({ type: "STORE_DATA", data });
       render(data);
       return;
     }
+  }
 
-    render(null);
-  });
+  // 3. Fetch depuis le background (pas besoin d'onglet)
+  const result = await new Promise((r) => chrome.runtime.sendMessage({ type: "FETCH_NOW" }, r));
+  render(result?.data || null);
 }
 
 document.getElementById("btn-refresh").addEventListener("click", load);
