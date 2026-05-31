@@ -165,6 +165,15 @@
     if (document.getElementById("cug-pet")) return;
     petEl = buildPet();
     document.body.appendChild(petEl);
+
+    const ref = gaugeEl || findComposer();
+    if (ref) {
+      const rect = ref.getBoundingClientRect();
+      petEl.style.bottom = `${window.innerHeight - rect.top + 8}px`;
+      petEl.style.right   = `${window.innerWidth - rect.right + 8}px`;
+      petEl.style.left    = "auto";
+    }
+
     petLooping = false;
     petFrame = 0;
     setTimeout(stepPet, 600);
