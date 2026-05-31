@@ -155,13 +155,16 @@
     setInterval(loadAndRender, 60000);
   }
 
+  let observer = null;
+
   function watchAndInject() {
     if (isExcludedPage()) return;
     inject();
-    const obs = new MutationObserver(() => {
+    observer = new MutationObserver(() => {
+      if (isExcludedPage()) return;
       if (!document.getElementById("claude-usage-gauge")) inject();
     });
-    obs.observe(document.body, { childList: true, subtree: true });
+    observer.observe(document.body, { childList: true, subtree: true });
   }
 
   function init() {
@@ -171,10 +174,12 @@
       if (location.href !== last) {
         last = location.href;
         if (isExcludedPage()) {
+          if (observer) { observer.disconnect(); observer = null; }
           const el = document.getElementById("claude-usage-gauge");
           if (el) el.remove();
           gaugeEl = null;
         } else {
+          if (observer) { observer.disconnect(); observer = null; }
           gaugeEl = null;
           setTimeout(watchAndInject, 1000);
         }
