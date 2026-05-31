@@ -270,6 +270,8 @@
           gaugeEl = null;
         } else {
           if (observer) { observer.disconnect(); observer = null; }
+          const el2 = document.getElementById("claude-usage-gauge");
+          if (el2) el2.remove();
           gaugeEl = null;
           setTimeout(watchAndInject, 1000);
         }
