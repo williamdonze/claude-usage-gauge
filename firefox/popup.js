@@ -173,6 +173,19 @@ async function load() {
   render(null);
 }
 
+async function refresh() {
+  document.getElementById("loading").style.display = "block";
+  document.getElementById("main").style.display = "none";
+
+  const data = await fetchDirect();
+  if (data) {
+    browser.runtime.sendMessage({ type: "STORE_DATA", data });
+    const tabs = await browser.tabs.query({ url: "*://claude.ai/*" });
+    tabs.forEach((t) => browser.tabs.sendMessage(t.id, { type: "RENDER_NOW", data }).catch(() => {}));
+  }
+  render(data);
+}
+
 applyStaticText();
-document.getElementById("btn-refresh").addEventListener("click", load);
+document.getElementById("btn-refresh").addEventListener("click", refresh);
 load();

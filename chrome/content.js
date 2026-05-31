@@ -279,6 +279,27 @@
     }, 500);
   }
 
+  chrome.runtime.onMessage.addListener((msg) => {
+    if (msg.type === "RENDER_NOW" && msg.data) {
+      if (!gaugeEl) return;
+      const d = msg.data;
+      const p5 = d.five_hour?.utilization ?? 0;
+      const p7 = d.seven_day?.utilization ?? 0;
+      const c5 = color(p5);
+      const fill = document.getElementById("cug-fill");
+      const dot  = document.getElementById("cug-dot");
+      const pct5 = document.getElementById("cug-5h-pct");
+      const rst5 = document.getElementById("cug-5h-rst");
+      const pct7 = document.getElementById("cug-7d-pct");
+      if (fill)  { fill.style.width = `${Math.min(100, p5)}%`; fill.style.background = c5; }
+      if (dot)   { dot.style.color = c5; dot.style.background = c5; }
+      if (pct5)  { pct5.textContent = `${Math.round(p5)}%`; pct5.style.color = c5; }
+      if (rst5)  { rst5.textContent = formatReset(d.five_hour?.resets_at); }
+      if (pct7)  { pct7.textContent = `${Math.round(p7)}%`; pct7.style.color = color(p7); }
+      if (Math.round(p5) === 67) showPet(); else hidePet();
+    }
+  });
+
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else setTimeout(init, 600);
 

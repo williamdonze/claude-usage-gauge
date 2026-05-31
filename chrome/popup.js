@@ -184,6 +184,28 @@ async function load() {
   render(result?.data || null);
 }
 
+async function refresh() {
+  document.getElementById("loading").style.display = "block";
+  document.getElementById("main").style.display = "none";
+
+  // Fetch frais, skip cache
+  let data = null;
+  const tabs = await new Promise((r) => chrome.tabs.query({ url: "*://claude.ai/*" }, r));
+  if (tabs.length > 0) data = await fetchViaTab(tabs[0].id);
+  if (!data) {
+    const result = await new Promise((r) => chrome.runtime.sendMessage({ type: "FETCH_NOW" }, r));
+    data = result?.data || null;
+  }
+  if (data) {
+    chrome.runtime.sendMessage({ type: "STORE_DATA", data });
+    // Notifie tous les onglets claude.ai de re-rendre
+    chrome.tabs.query({ url: "*://claude.ai/*" }, (tabs) => {
+      tabs.forEach((t) => chrome.tabs.sendMessage(t.id, { type: "RENDER_NOW", data }).catch(() => {}));
+    });
+  }
+  render(data);
+}
+
 applyStaticText();
-document.getElementById("btn-refresh").addEventListener("click", load);
+document.getElementById("btn-refresh").addEventListener("click", refresh);
 load();
