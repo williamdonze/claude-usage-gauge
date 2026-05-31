@@ -76,28 +76,33 @@
     return "#dc2626";
   }
 
+  function mk(tag, id, cls) {
+    const e = document.createElement(tag);
+    if (id) e.id = id;
+    if (cls) e.className = cls;
+    return e;
+  }
+  function txt(tag, cls, text) { const e = mk(tag, null, cls); e.textContent = text; return e; }
+
   function buildGauge() {
-    const el = document.createElement("div");
-    el.id = "claude-usage-gauge";
-    el.innerHTML = `
-      <div class="cug-bar-wrap">
-        <div class="cug-bar-track">
-          <div class="cug-bar-fill" id="cug-fill"></div>
-        </div>
-        <div class="cug-bar-labels">
-          <span class="cug-label-left">
-            <span class="cug-dot" id="cug-dot"></span>
-            <span class="cug-session-label">${T.session}</span>
-            <span class="cug-pct-val" id="cug-5h-pct"></span>
-            <span class="cug-reset-val" id="cug-5h-rst"></span>
-          </span>
-          <span class="cug-label-right">
-            <span class="cug-week-label">${T.week}</span>
-            <span class="cug-week-pct" id="cug-7d-pct"></span>
-          </span>
-        </div>
-      </div>
-    `;
+    const el    = mk("div", "claude-usage-gauge");
+    const wrap  = mk("div", null, "cug-bar-wrap");
+    const track = mk("div", null, "cug-bar-track");
+    track.appendChild(mk("div", "cug-fill", "cug-bar-fill"));
+    const labels = mk("div", null, "cug-bar-labels");
+    const left   = mk("span", null, "cug-label-left");
+    left.appendChild(mk("span", "cug-dot", "cug-dot"));
+    left.appendChild(txt("span", "cug-session-label", T.session));
+    left.appendChild(mk("span", "cug-5h-pct", "cug-pct-val"));
+    left.appendChild(mk("span", "cug-5h-rst", "cug-reset-val"));
+    const right  = mk("span", null, "cug-label-right");
+    right.appendChild(txt("span", "cug-week-label", T.week));
+    right.appendChild(mk("span", "cug-7d-pct", "cug-week-pct"));
+    labels.appendChild(left);
+    labels.appendChild(right);
+    wrap.appendChild(track);
+    wrap.appendChild(labels);
+    el.appendChild(wrap);
     return el;
   }
 
@@ -143,10 +148,17 @@
   let petFrame = 0;
   let petLooping = false;
 
+  function parseSvg(str) {
+    return new DOMParser().parseFromString(str, "image/svg+xml").documentElement;
+  }
+  function setSvg(el, str) {
+    el.replaceChildren(parseSvg(str));
+  }
+
   function buildPet() {
     const el = document.createElement("div");
     el.id = "cug-pet";
-    el.innerHTML = PET_FRAMES[0];
+    setSvg(el, PET_FRAMES[0]);
     return el;
   }
 
@@ -165,12 +177,12 @@
   function stepPet() {
     if (!petEl) return;
     if (!petLooping) {
-      petEl.innerHTML = PET_FRAMES[1];
+      setSvg(petEl, PET_FRAMES[1]);
       petFrame = 1;
       petLooping = true;
       petTimer = setInterval(() => {
         petFrame = petFrame === 1 ? 2 : 1;
-        if (petEl) petEl.innerHTML = PET_FRAMES[petFrame];
+        if (petEl) setSvg(petEl, PET_FRAMES[petFrame]);
       }, 200);
     }
   }
