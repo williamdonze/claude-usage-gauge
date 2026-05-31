@@ -1,13 +1,13 @@
 // background.js — Chrome MV3 (service worker)
-let cachedData = null;
+// Persiste les données dans storage.local pour survivre aux kills du service worker
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg.type === "STORE_DATA") {
-    cachedData = msg.data;
-    sendResponse({ ok: true });
+    chrome.storage.local.set({ usageData: msg.data }, () => sendResponse({ ok: true }));
+    return true;
   }
   if (msg.type === "GET_DATA") {
-    sendResponse({ data: cachedData });
+    chrome.storage.local.get("usageData", (result) => sendResponse({ data: result.usageData || null }));
+    return true;
   }
-  return true;
 });
