@@ -148,25 +148,21 @@
     return el;
   }
 
-  function findComposerBox() {
-    // Remonte depuis le composer pour trouver le plus grand wrapper (la carte blanche)
-    let el = findComposer();
-    if (!el) return null;
-    for (let i = 0; i < 4; i++) {
-      const p = el.parentElement;
-      if (!p || p.tagName === "BODY" || p.tagName === "MAIN") break;
-      const r = p.getBoundingClientRect();
-      // S'arrête quand le parent s'étend sur toute la largeur (layout, pas composer)
-      if (r.width > window.innerWidth * 0.95) break;
-      el = p;
-    }
-    return el;
-  }
-
   function positionPet() {
     if (!petEl) return;
-    const box = findComposerBox();
-    if (!box) return;
+    const composer = findComposer();
+    if (!composer) return;
+    // Remonte jusqu'au wrapper qui a la même largeur que le composer
+    let box = composer;
+    for (let i = 0; i < 6; i++) {
+      const p = box.parentElement;
+      if (!p || p.tagName === "BODY" || p.tagName === "MAIN") break;
+      const pr = p.getBoundingClientRect();
+      const br = box.getBoundingClientRect();
+      // S'arrête si le parent est significativement plus large (layout extérieur)
+      if (pr.width > br.width + 40) break;
+      box = p;
+    }
     const rect = box.getBoundingClientRect();
     const petW = petEl.offsetWidth || 96;
     petEl.style.bottom = `${window.innerHeight - rect.top}px`;
