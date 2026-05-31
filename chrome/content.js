@@ -150,11 +150,13 @@
 
   function positionPet() {
     if (!petEl || !gaugeEl) return;
-    const container = gaugeEl.parentElement || gaugeEl;
-    const rect = container.getBoundingClientRect();
-    const petW = petEl.offsetWidth || 96;
-    petEl.style.bottom = `${window.innerHeight - rect.top}px`;
-    petEl.style.left   = `${rect.right - petW}px`;
+    const inner = gaugeEl.parentElement || gaugeEl;
+    const outer = inner.parentElement || inner;
+    const innerRect = inner.getBoundingClientRect();
+    const outerRect = outer.getBoundingClientRect();
+    const petW = petEl.offsetWidth || 38;
+    petEl.style.bottom = `${window.innerHeight - outerRect.top}px`;
+    petEl.style.left   = `${innerRect.right - petW}px`;
     petEl.style.right  = "auto";
   }
 
