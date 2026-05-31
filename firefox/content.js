@@ -170,8 +170,14 @@
     setInterval(() => {
       if (location.href !== last) {
         last = location.href;
-        gaugeEl = null;
-        if (!isExcludedPage()) setTimeout(watchAndInject, 1000);
+        if (isExcludedPage()) {
+          const el = document.getElementById("claude-usage-gauge");
+          if (el) el.remove();
+          gaugeEl = null;
+        } else {
+          gaugeEl = null;
+          setTimeout(watchAndInject, 1000);
+        }
       }
     }, 500);
   }
