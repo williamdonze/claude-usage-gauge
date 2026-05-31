@@ -168,9 +168,10 @@
     const box = findComposerBox();
     if (!box) return;
     const rect = box.getBoundingClientRect();
+    const petW = petEl.offsetWidth || 96;
     petEl.style.bottom = `${window.innerHeight - rect.top}px`;
-    petEl.style.right  = `${window.innerWidth - rect.right + 16}px`;
-    petEl.style.left   = "auto";
+    petEl.style.left   = `${rect.right - petW}px`;
+    petEl.style.right  = "auto";
   }
 
   function stepPet() {
