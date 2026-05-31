@@ -36,13 +36,36 @@
     } catch(e) { return null; }
   }
 
+  const TRANSLATIONS = {
+    fr: { session: "Session 5h", week: "7 jours :", reset: "reset imminent",
+          resetIn: (d,h,m) => d>0 ? (h>0?`↺ ${d}j ${h}h`:`↺ ${d}j`) : h>0 ? `↺ ${h}h${String(m).padStart(2,"0")}` : `↺ ${m}m` },
+    en: { session: "5h session", week: "7 days:", reset: "resetting soon",
+          resetIn: (d,h,m) => d>0 ? (h>0?`↺ ${d}d ${h}h`:`↺ ${d}d`) : h>0 ? `↺ ${h}h${String(m).padStart(2,"0")}` : `↺ ${m}m` },
+    es: { session: "Sesión 5h", week: "7 días:", reset: "reinicio inminente",
+          resetIn: (d,h,m) => d>0 ? (h>0?`↺ ${d}d ${h}h`:`↺ ${d}d`) : h>0 ? `↺ ${h}h${String(m).padStart(2,"0")}` : `↺ ${m}m` },
+    de: { session: "5h-Sitzung", week: "7 Tage:", reset: "Reset bald",
+          resetIn: (d,h,m) => d>0 ? (h>0?`↺ ${d}T ${h}h`:`↺ ${d}T`) : h>0 ? `↺ ${h}h${String(m).padStart(2,"0")}` : `↺ ${m}m` },
+    pt: { session: "Sessão 5h", week: "7 dias:", reset: "reset iminente",
+          resetIn: (d,h,m) => d>0 ? (h>0?`↺ ${d}d ${h}h`:`↺ ${d}d`) : h>0 ? `↺ ${h}h${String(m).padStart(2,"0")}` : `↺ ${m}m` },
+    ja: { session: "5時間セッション", week: "7日間:", reset: "まもなくリセット",
+          resetIn: (d,h,m) => d>0 ? (h>0?`↺ ${d}日${h}時間`:`↺ ${d}日`) : h>0 ? `↺ ${h}時間${String(m).padStart(2,"0")}分` : `↺ ${m}分` },
+    zh: { session: "5小时会话", week: "7天:", reset: "即将重置",
+          resetIn: (d,h,m) => d>0 ? (h>0?`↺ ${d}天${h}小时`:`↺ ${d}天`) : h>0 ? `↺ ${h}小时${String(m).padStart(2,"0")}分` : `↺ ${m}分` },
+    ko: { session: "5시간 세션", week: "7일:", reset: "곧 초기화",
+          resetIn: (d,h,m) => d>0 ? (h>0?`↺ ${d}일 ${h}시간`:`↺ ${d}일`) : h>0 ? `↺ ${h}시간${String(m).padStart(2,"0")}분` : `↺ ${m}분` },
+  };
+  const lang = (navigator.language || "en").toLowerCase().split("-")[0];
+  const T = TRANSLATIONS[lang] || TRANSLATIONS.en;
+
   function formatReset(iso) {
     if (!iso) return "";
     const diff = new Date(iso) - Date.now();
-    if (diff <= 0) return "reset imminent";
-    const h = Math.floor(diff / 3600000);
-    const m = Math.floor((diff % 3600000) / 60000);
-    return h > 0 ? `↺ ${h}h${m.toString().padStart(2,"0")}` : `↺ ${m}m`;
+    if (diff <= 0) return T.reset;
+    const totalMinutes = Math.floor(diff / 60000);
+    const d = Math.floor(totalMinutes / 1440);
+    const h = Math.floor((totalMinutes % 1440) / 60);
+    const m = totalMinutes % 60;
+    return T.resetIn(d, h, m);
   }
 
   function color(pct) {
@@ -64,12 +87,12 @@
         <div class="cug-bar-labels">
           <span class="cug-label-left">
             <span class="cug-dot" id="cug-dot"></span>
-            <span class="cug-session-label">Session 5h</span>
+            <span class="cug-session-label">${T.session}</span>
             <span class="cug-pct-val" id="cug-5h-pct"></span>
             <span class="cug-reset-val" id="cug-5h-rst"></span>
           </span>
           <span class="cug-label-right">
-            <span class="cug-week-label">7 jours :</span>
+            <span class="cug-week-label">${T.week}</span>
             <span class="cug-week-pct" id="cug-7d-pct"></span>
           </span>
         </div>

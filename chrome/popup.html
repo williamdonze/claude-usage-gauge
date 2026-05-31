@@ -159,16 +159,16 @@
     <div class="logo">
       <img src="icons/icon96.png" alt="Claude" />
     </div>
-    <h1>Claude Usage<span>Données temps réel</span></h1>
+    <h1>Claude Usage<span id="p-subtitle"></span></h1>
   </header>
 
-  <div id="loading">Chargement…</div>
+  <div id="loading"></div>
 
   <div id="main">
     <div class="card">
       <div class="card-head">
         <div>
-          <div class="card-label">⏱ Session 5h</div>
+          <div class="card-label" id="p-5h-label"></div>
           <div class="card-sub" id="p-5h-reset"></div>
         </div>
         <div class="card-pct" id="p-5h-val">—</div>
@@ -179,7 +179,7 @@
     <div class="card">
       <div class="card-head">
         <div>
-          <div class="card-label">📅 7 jours</div>
+          <div class="card-label" id="p-7d-label"></div>
           <div class="card-sub" id="p-7d-reset"></div>
         </div>
         <div class="card-pct" id="p-7d-val">—</div>
@@ -187,8 +187,8 @@
       <div class="track"><div class="fill" id="p-7d-fill"></div></div>
     </div>
 
-    <div id="p-nodata">Ouvrez claude.ai pour charger les données</div>
-    <button id="btn-refresh">↻ Actualiser</button>
+    <div id="p-nodata"></div>
+    <button id="btn-refresh"></button>
   </div>
 
   <script src="popup.js"></script>
