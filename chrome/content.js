@@ -168,8 +168,8 @@
     const box = findComposerBox();
     if (!box) return;
     const rect = box.getBoundingClientRect();
-    petEl.style.bottom = `${window.innerHeight - rect.top + 8}px`;
-    petEl.style.right  = `${window.innerWidth - rect.right + 8}px`;
+    petEl.style.bottom = `${window.innerHeight - rect.top}px`;
+    petEl.style.right  = `${window.innerWidth - rect.right + 16}px`;
     petEl.style.left   = "auto";
   }
 
