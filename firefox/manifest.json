@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Claude Usage Tracker",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Affiche la vraie jauge d'utilisation Claude (session 5h + hebdo 7j) dans les conversations.",
   "icons": {
     "48": "icons/icon48.png",
