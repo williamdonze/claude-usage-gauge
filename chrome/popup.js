@@ -45,34 +45,35 @@ function render(data) {
   }
 }
 
+async function fetchDirect() {
+  try {
+    const orgsRes = await fetch("https://claude.ai/api/organizations", { credentials: "include" });
+    if (!orgsRes.ok) return null;
+    const orgs = await orgsRes.json();
+    const orgId = orgs?.[0]?.uuid || orgs?.[0]?.id;
+    if (!orgId) return null;
+    const res = await fetch(`https://claude.ai/api/organizations/${orgId}/usage`, { credentials: "include" });
+    return res.ok ? await res.json() : null;
+  } catch(e) { return null; }
+}
+
 async function load() {
   document.getElementById("loading").style.display = "block";
   document.getElementById("main").style.display = "none";
 
-  // Essaie le cache du background
-  chrome.runtime.sendMessage({ type: "GET_DATA" }, (cached) => {
+  // 1. Essaie le cache du background
+  chrome.runtime.sendMessage({ type: "GET_DATA" }, async (cached) => {
     if (cached?.data) { render(cached.data); return; }
 
-    // Injecte dans l'onglet claude.ai actif
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      const tab = tabs[0];
-      if (!tab?.url?.includes("claude.ai")) { render(null); return; }
+    // 2. Fetch direct depuis le popup (fonctionne sans onglet claude.ai ouvert)
+    const data = await fetchDirect();
+    if (data) {
+      chrome.runtime.sendMessage({ type: "STORE_DATA", data });
+      render(data);
+      return;
+    }
 
-      chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: async () => {
-          try {
-            const m = document.cookie.match(/lastActiveOrg=([a-f0-9-]{36})/i);
-            const orgId = m?.[1];
-            if (!orgId) return null;
-            const res = await fetch(`https://claude.ai/api/organizations/${orgId}/usage`, { credentials: "include" });
-            return res.ok ? await res.json() : null;
-          } catch(e) { return null; }
-        }
-      }, (results) => {
-        render(results?.[0]?.result || null);
-      });
-    });
+    render(null);
   });
 }
 
