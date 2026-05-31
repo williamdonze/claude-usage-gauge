@@ -149,19 +149,9 @@
   }
 
   function positionPet() {
-    if (!petEl) return;
-    const composer = findComposer();
-    if (!composer) return;
-    let box = composer;
-    for (let i = 0; i < 6; i++) {
-      const p = box.parentElement;
-      if (!p || p.tagName === "BODY" || p.tagName === "MAIN") break;
-      const pr = p.getBoundingClientRect();
-      const br = box.getBoundingClientRect();
-      if (pr.width > br.width + 40) break;
-      box = p;
-    }
-    const rect = box.getBoundingClientRect();
+    if (!petEl || !gaugeEl) return;
+    const container = gaugeEl.parentElement || gaugeEl;
+    const rect = container.getBoundingClientRect();
     const petW = petEl.offsetWidth || 96;
     petEl.style.bottom = `${window.innerHeight - rect.top}px`;
     petEl.style.left   = `${rect.right - petW}px`;
