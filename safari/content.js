@@ -104,6 +104,13 @@
 
 
 
+  // ── Pages où la jauge ne doit pas apparaître ───────────────────────────
+
+  function isExcludedPage() {
+    const p = location.pathname;
+    return p.startsWith("/settings") || p.startsWith("/login") || p.startsWith("/signup");
+  }
+
   // ── Détecte si on est sur Claude Code (/code) ──────────────────────────
 
   function isClaudeCode() {
@@ -149,6 +156,7 @@
   }
 
   function watchAndInject() {
+    if (isExcludedPage()) return;
     inject();
     const obs = new MutationObserver(() => {
       if (!document.getElementById("claude-usage-gauge")) inject();
@@ -163,7 +171,7 @@
       if (location.href !== last) {
         last = location.href;
         gaugeEl = null;
-        setTimeout(watchAndInject, 1000);
+        if (!isExcludedPage()) setTimeout(watchAndInject, 1000);
       }
     }, 500);
   }
