@@ -148,11 +148,24 @@
     return el;
   }
 
+  function findComposerBox() {
+    let el = findComposer();
+    if (!el) return null;
+    for (let i = 0; i < 4; i++) {
+      const p = el.parentElement;
+      if (!p || p.tagName === "BODY" || p.tagName === "MAIN") break;
+      const r = p.getBoundingClientRect();
+      if (r.width > window.innerWidth * 0.95) break;
+      el = p;
+    }
+    return el;
+  }
+
   function positionPet() {
     if (!petEl) return;
-    const ref = gaugeEl || findComposer();
-    if (!ref) return;
-    const rect = ref.getBoundingClientRect();
+    const box = findComposerBox();
+    if (!box) return;
+    const rect = box.getBoundingClientRect();
     petEl.style.bottom = `${window.innerHeight - rect.top + 8}px`;
     petEl.style.right  = `${window.innerWidth - rect.right + 8}px`;
     petEl.style.left   = "auto";
