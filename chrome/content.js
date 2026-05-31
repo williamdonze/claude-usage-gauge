@@ -148,17 +148,26 @@
     return el;
   }
 
+  function positionPet() {
+    if (!petEl) return;
+    const ref = gaugeEl || findComposer();
+    if (!ref) return;
+    const rect = ref.getBoundingClientRect();
+    petEl.style.bottom = `${window.innerHeight - rect.top + 8}px`;
+    petEl.style.right  = `${window.innerWidth - rect.right + 8}px`;
+    petEl.style.left   = "auto";
+  }
+
   function stepPet() {
     if (!petEl) return;
     if (!petLooping) {
-      // Frame 0 jouée, on passe en boucle 1↔2
       petEl.innerHTML = PET_FRAMES[1];
       petFrame = 1;
       petLooping = true;
       petTimer = setInterval(() => {
         petFrame = petFrame === 1 ? 2 : 1;
         if (petEl) petEl.innerHTML = PET_FRAMES[petFrame];
-      }, 400);
+      }, 200);
     }
   }
 
@@ -166,22 +175,15 @@
     if (document.getElementById("cug-pet")) return;
     petEl = buildPet();
     document.body.appendChild(petEl);
-
-    // Positionne au-dessus du coin droit du composer
-    const ref = gaugeEl || findComposer();
-    if (ref) {
-      const rect = ref.getBoundingClientRect();
-      petEl.style.bottom = `${window.innerHeight - rect.top + 8}px`;
-      petEl.style.right   = `${window.innerWidth - rect.right + 8}px`;
-      petEl.style.left    = "auto";
-    }
-
+    positionPet();
+    window.addEventListener("resize", positionPet);
     petLooping = false;
     petFrame = 0;
     setTimeout(stepPet, 600);
   }
 
   function hidePet() {
+    window.removeEventListener("resize", positionPet);
     if (petTimer) { clearInterval(petTimer); petTimer = null; }
     if (petEl) { petEl.remove(); petEl = null; }
     petLooping = false;
