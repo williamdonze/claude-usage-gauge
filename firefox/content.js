@@ -222,10 +222,11 @@
   // ── Trouve le composer ──────────────────────────────────────────────────
 
   function findComposer() {
-    // New claude.ai UI (2025+) has stable IDs
-    const box = document.getElementById("static-composer-box");
-    if (box) return box;
+    // New claude.ai UI: main composer box has class rounded-composer
+    const rounded = document.querySelector('[class*="rounded-composer"]');
+    if (rounded) return rounded;
 
+    // Fallback: walk up from textarea
     const ta = document.querySelector("textarea")
              || document.querySelector('[contenteditable="true"]');
     if (!ta) return null;
