@@ -248,6 +248,7 @@
     gaugeEl = buildGauge();
 
     if (isClaudeCode()) {
+      gaugeEl.style.marginTop = "6px";
       composer.parentElement.insertBefore(gaugeEl, composer.nextSibling);
     } else {
       composer.appendChild(gaugeEl);

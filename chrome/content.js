@@ -249,6 +249,7 @@
 
     if (isClaudeCode()) {
       // Sur Claude Code, injecte après le composer pour ne pas bloquer l'input
+      gaugeEl.style.marginTop = "6px";
       composer.parentElement.insertBefore(gaugeEl, composer.nextSibling);
     } else {
       // Sur Claude normal, injecte à l'intérieur du composer (sous l'input)
