@@ -222,6 +222,10 @@
   // ── Trouve le composer ──────────────────────────────────────────────────
 
   function findComposer() {
+    // New claude.ai UI (2025+) has stable IDs
+    const box = document.getElementById("static-composer-box");
+    if (box) return box;
+
     const ta = document.querySelector("textarea")
              || document.querySelector('[contenteditable="true"]');
     if (!ta) return null;
@@ -230,7 +234,6 @@
     for (let i = 0; i < 12; i++) {
       const p = el.parentElement;
       if (!p || p.tagName === "BODY") break;
-      // Cherche le conteneur qui a les boutons de contrôle (Sonnet, send, mic)
       const hasSend  = p.querySelector('button[aria-label*="Send"], button[data-testid*="send"], button[type="submit"]');
       const hasModel = p.querySelector('[aria-label*="Sonnet"], [aria-label*="Opus"], [aria-label*="Haiku"]');
       if (hasSend || hasModel) return p;
