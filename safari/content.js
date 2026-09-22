@@ -164,13 +164,10 @@
 
   function positionPet() {
     if (!petEl || !gaugeEl) return;
-    const inner = gaugeEl.parentElement || gaugeEl;
-    const outer = inner.parentElement || inner;
-    const innerRect = inner.getBoundingClientRect();
-    const outerRect = outer.getBoundingClientRect();
+    const rect = gaugeEl.getBoundingClientRect();
     const petW = petEl.offsetWidth || 38;
-    petEl.style.bottom = `${window.innerHeight - outerRect.top}px`;
-    petEl.style.left   = `${innerRect.right - petW}px`;
+    petEl.style.bottom = `${window.innerHeight - rect.top}px`;
+    petEl.style.left   = `${rect.right - petW}px`;
     petEl.style.right  = "auto";
   }
 
