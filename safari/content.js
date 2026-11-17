@@ -37,21 +37,21 @@
   }
 
   const TRANSLATIONS = {
-    fr: { session: "5h", week: "7 jours", reset: "reset imminent",
+    fr: { session: "Session 5h", week: "7 jours", reset: "reset imminent",
           resetIn: (d,h,m) => d>0 ? (h>0?`${d}j ${h}h`:`${d}j`) : h>0 ? `${h}h${String(m).padStart(2,"0")}` : `${m}m` },
-    en: { session: "5h", week: "7 days", reset: "resetting soon",
+    en: { session: "Session 5h", week: "7 days", reset: "resetting soon",
           resetIn: (d,h,m) => d>0 ? (h>0?`${d}d ${h}h`:`${d}d`) : h>0 ? `${h}h${String(m).padStart(2,"0")}` : `${m}m` },
-    es: { session: "5h", week: "7 días", reset: "reinicio inminente",
+    es: { session: "Sesión 5h", week: "7 días", reset: "reinicio inminente",
           resetIn: (d,h,m) => d>0 ? (h>0?`${d}d ${h}h`:`${d}d`) : h>0 ? `${h}h${String(m).padStart(2,"0")}` : `${m}m` },
-    de: { session: "5h", week: "7 Tage", reset: "Reset bald",
+    de: { session: "Sitzung 5h", week: "7 Tage", reset: "Reset bald",
           resetIn: (d,h,m) => d>0 ? (h>0?`${d}T ${h}h`:`${d}T`) : h>0 ? `${h}h${String(m).padStart(2,"0")}` : `${m}m` },
-    pt: { session: "5h", week: "7 dias", reset: "reset iminente",
+    pt: { session: "Sessão 5h", week: "7 dias", reset: "reset iminente",
           resetIn: (d,h,m) => d>0 ? (h>0?`${d}d ${h}h`:`${d}d`) : h>0 ? `${h}h${String(m).padStart(2,"0")}` : `${m}m` },
-    ja: { session: "5時間", week: "7日間", reset: "まもなくリセット",
+    ja: { session: "セッション5時間", week: "7日間", reset: "まもなくリセット",
           resetIn: (d,h,m) => d>0 ? (h>0?`${d}日${h}時間`:`${d}日`) : h>0 ? `${h}時間${String(m).padStart(2,"0")}分` : `${m}分` },
-    zh: { session: "5小时", week: "7天", reset: "即将重置",
+    zh: { session: "会话5小时", week: "7天", reset: "即将重置",
           resetIn: (d,h,m) => d>0 ? (h>0?`${d}天${h}小时`:`${d}天`) : h>0 ? `${h}小时${String(m).padStart(2,"0")}分` : `${m}分` },
-    ko: { session: "5시간", week: "7일", reset: "곧 초기화",
+    ko: { session: "세션 5시간", week: "7일", reset: "곧 초기화",
           resetIn: (d,h,m) => d>0 ? (h>0?`${d}일 ${h}시간`:`${d}일`) : h>0 ? `${h}시간${String(m).padStart(2,"0")}분` : `${m}분` },
   };
   const lang = (navigator.language || "en").toLowerCase().split("-")[0];
@@ -98,7 +98,7 @@
     // Left: ● Session 5h  72%  ↻ 3h41
     const left = mk("div", null, "cug-left");
     left.appendChild(mk("span", "cug-5h-dot", "cug-dot-ind"));
-    left.appendChild(txt("span", "cug-label", `${T.session} :`));
+    left.appendChild(txt("span", "cug-label", T.session));
     left.appendChild(mk("span", "cug-5h-pct", "cug-pct"));
     left.appendChild(mk("span", "cug-5h-rst", "cug-rst"));
 
