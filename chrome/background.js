@@ -16,10 +16,10 @@ async function updateIcon(data) {
 
   const pct = data ? Math.round(data.five_hour?.utilization ?? 0) : 0;
   const cx = size / 2, cy = size / 2;
-  const r = 50, lw = 18;
+  const r = 55, lw = 22;   // large ring, nearly fills the icon
 
-  // Track ring (light gray)
-  ctx.strokeStyle = "rgba(0,0,0,0.13)";
+  // Track ring
+  ctx.strokeStyle = "rgba(120,120,120,0.22)";
   ctx.lineWidth = lw;
   ctx.lineCap = "butt";
   ctx.beginPath();
@@ -39,9 +39,9 @@ async function updateIcon(data) {
   }
 
   // Percentage text in center
-  const label = pct > 0 ? `${pct}%` : "";
-  if (label) {
-    const fontSize = label.length > 3 ? 26 : 30;
+  if (pct > 0) {
+    const label = `${pct}%`;
+    const fontSize = label.length > 3 ? 24 : 28;
     ctx.font = `bold ${fontSize}px -apple-system, BlinkMacSystemFont, sans-serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
@@ -51,6 +51,13 @@ async function updateIcon(data) {
 
   const imageData = ctx.getImageData(0, 0, size, size);
   chrome.action.setIcon({ imageData: { 128: imageData } });
+
+  // Tooltip on hover
+  const d7pct = data ? Math.round(data.seven_day?.utilization ?? 0) : 0;
+  const title = pct > 0
+    ? `Claude Usage\n5h session: ${pct}%\n7-day: ${d7pct}%`
+    : "Claude Usage Tracker";
+  chrome.action.setTitle({ title });
 }
 
 async function appendHistory(data) {

@@ -84,50 +84,61 @@
   }
   function txt(tag, cls, text) { const e = mk(tag, null, cls); e.textContent = text; return e; }
 
-  function buildCol(prefix, label) {
-    const col = mk("div", null, "cug-col");
-    const top = mk("div", null, "cug-col-top");
-    top.appendChild(txt("span", "cug-label", label));
-    top.appendChild(mk("span", `cug-${prefix}-pct`, "cug-pct"));
-    const track = mk("div", null, "cug-track");
-    track.appendChild(mk("div", `cug-${prefix}-fill`, "cug-fill"));
-    col.appendChild(top);
-    col.appendChild(track);
-    col.appendChild(mk("span", `cug-${prefix}-rst`, "cug-rst"));
-    return col;
-  }
-
   function buildGauge() {
-    const el = mk("div", "claude-usage-gauge");
+    const el   = mk("div", "claude-usage-gauge");
     const cols = mk("div", null, "cug-cols");
-    cols.appendChild(buildCol("5h", T.session));
+
+    // Left: 5h with bar
+    const left = mk("div", null, "cug-col");
+    const ltop = mk("div", null, "cug-col-top");
+    ltop.appendChild(txt("span", "cug-label", T.session));
+    ltop.appendChild(mk("span", "cug-5h-pct", "cug-pct"));
+    const track = mk("div", null, "cug-track");
+    track.appendChild(mk("div", "cug-5h-fill", "cug-fill"));
+    left.appendChild(ltop);
+    left.appendChild(track);
+    left.appendChild(mk("span", "cug-5h-rst", "cug-rst"));
+
+    // Right: 7d text only (no bar)
+    const right = mk("div", null, "cug-col cug-col--text");
+    const rtop  = mk("div", null, "cug-col-top");
+    rtop.appendChild(txt("span", "cug-label", T.week));
+    rtop.appendChild(mk("span", "cug-7d-pct", "cug-pct"));
+    right.appendChild(rtop);
+    right.appendChild(mk("span", "cug-7d-rst", "cug-rst"));
+
+    cols.appendChild(left);
     cols.appendChild(mk("div", null, "cug-sep"));
-    cols.appendChild(buildCol("7d", T.week));
+    cols.appendChild(right);
     el.appendChild(cols);
     return el;
   }
 
   let lastData = null;
 
-  function fillCol(prefix, pct, iso) {
-    const c = color(pct);
-    const pctEl  = document.getElementById(`cug-${prefix}-pct`);
-    const fillEl = document.getElementById(`cug-${prefix}-fill`);
-    const rstEl  = document.getElementById(`cug-${prefix}-rst`);
-    if (pctEl)  { pctEl.textContent = `${Math.round(pct)}%`; pctEl.style.color = c; }
-    if (fillEl) {
-      fillEl.style.width = `${Math.min(100, pct)}%`;
-      fillEl.style.background = c;
-      fillEl.classList.toggle("cug-fill--critical", pct >= 90);
-    }
-    if (rstEl)  { rstEl.textContent = formatReset(iso); }
-  }
-
   function applyData(d) {
     lastData = d;
     if (!gaugeEl) return;
-    fillCol("5h", d.five_hour?.utilization ?? 0, d.five_hour?.resets_at);
-    fillCol("7d", d.seven_day?.utilization ?? 0, d.seven_day?.resets_at);
+
+    const h5pct = d.five_hour?.utilization ?? 0;
+    const d7pct = d.seven_day?.utilization ?? 0;
+    const c5 = color(h5pct), c7 = color(d7pct);
+
+    const p5    = document.getElementById("cug-5h-pct");
+    const fill  = document.getElementById("cug-5h-fill");
+    const rst5  = document.getElementById("cug-5h-rst");
+    const p7    = document.getElementById("cug-7d-pct");
+    const rst7  = document.getElementById("cug-7d-rst");
+
+    if (p5)   { p5.textContent = `${Math.round(h5pct)}%`; p5.style.color = c5; }
+    if (fill) {
+      fill.style.width = `${Math.min(100, h5pct)}%`;
+      fill.style.background = c5;
+      fill.classList.toggle("cug-fill--critical", h5pct >= 90);
+    }
+    if (rst5) rst5.textContent = formatReset(d.five_hour?.resets_at);
+    if (p7)   { p7.textContent = `${Math.round(d7pct)}%`; p7.style.color = c7; }
+    if (rst7) rst7.textContent = formatReset(d.seven_day?.resets_at);
   }
 
   async function loadAndRender() {
@@ -148,11 +159,23 @@
   }
 
   function findComposer() {
+    // Claude Code: use specific testid, walk up to the surface card
+    const ccInput = document.querySelector('[data-testid="code-prompt-input"]');
+    if (ccInput) {
+      let el = ccInput;
+      for (let i = 0; i < 10; i++) {
+        if (!el.parentElement) break;
+        el = el.parentElement;
+        const cls = typeof el.className === "string" ? el.className : "";
+        if (cls.includes("bg-surface")) return el;
+      }
+    }
+
+    // Normal Claude: walk up to fieldset or rounded-composer
     const input = document.querySelector('[contenteditable="true"]')
                 || document.querySelector("textarea");
     if (!input) return null;
 
-    // Walk up: target the fieldset (input box boundary in current UI)
     let el = input;
     for (let i = 0; i < 12; i++) {
       if (!el.parentElement || el.parentElement.tagName === "BODY") break;
@@ -180,13 +203,7 @@
     if (!composer) return;
 
     gaugeEl = buildGauge();
-
-    if (isClaudeCode()) {
-      gaugeEl.style.marginTop = "6px";
-      composer.parentElement.insertBefore(gaugeEl, composer.nextSibling);
-    } else {
-      composer.appendChild(gaugeEl);
-    }
+    composer.appendChild(gaugeEl);
 
     log("Injected ✓", isClaudeCode() ? "(Claude Code)" : "(Claude normal)");
     if (lastData) applyData(lastData);

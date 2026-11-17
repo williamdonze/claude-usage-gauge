@@ -1,4 +1,4 @@
-/* gauge.css v13 */
+/* gauge.css v14 */
 
 #claude-usage-gauge {
   pointer-events: auto;
@@ -16,12 +16,19 @@
   gap: 0;
 }
 
+/* Left col (5h): takes all remaining space */
 .cug-col {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 4px;
   min-width: 0;
+}
+
+/* Right col (7d): compact, text-only, fixed width */
+.cug-col--text {
+  flex: 0 0 auto;
+  min-width: 56px;
 }
 
 .cug-sep {
@@ -63,7 +70,7 @@
   transition: color 0.4s;
 }
 
-/* ── Progress bar ── */
+/* ── Progress bar (5h only) ── */
 .cug-track {
   height: 3px;
   background: rgba(0, 0, 0, 0.08);
