@@ -114,29 +114,61 @@
     /* ── Settings panel ── */
     .hdr-actions { display: flex; align-items: center; gap: 6px; margin-left: auto; }
     .btn-gear {
-      width: 26px; height: 26px; border-radius: 50%; border: none; background: none;
+      border: none; background: none; padding: 0;
       cursor: pointer; display: flex; align-items: center; justify-content: center;
-      color: var(--muted); transition: color 0.15s, background 0.15s; padding: 0; flex-shrink: 0;
+      color: var(--muted); transition: color 0.2s; flex-shrink: 0;
     }
-    .btn-gear:hover { background: var(--subtle); color: var(--text); }
-    .btn-gear.active { color: var(--text); background: var(--subtle); }
+    .btn-gear:hover { color: var(--text); }
+    .btn-gear.active { color: var(--text); }
 
     #settings-panel {
       display: none; margin-bottom: 8px;
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: 10px; padding: 12px 14px; box-shadow: var(--shadow);
+      border-radius: 10px; padding: 14px 14px 12px; box-shadow: var(--shadow);
     }
     #settings-panel.open { display: block; }
     .settings-title { font-size: 10px; font-weight: 600; text-transform: uppercase;
-      letter-spacing: 0.06em; color: var(--muted); margin-bottom: 10px; }
-    .setting-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+      letter-spacing: 0.06em; color: var(--muted); margin-bottom: 14px; }
+    .setting-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
     .setting-row:last-child { margin-bottom: 0; }
-    .setting-label { font-size: 11px; color: var(--muted); flex: 1; }
-    .setting-row input[type=range] {
-      flex: 2; height: 4px; cursor: pointer; accent-color: #d97706;
+    .setting-dot-lbl { display: flex; align-items: center; gap: 6px; min-width: 58px; }
+    .setting-dot-lbl .s-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .setting-dot-lbl span { font-size: 11px; font-weight: 600; }
+
+    /* Custom range slider */
+    input[type=range].cug-range {
+      -webkit-appearance: none; appearance: none;
+      flex: 1; height: 3px; border-radius: 999px;
+      outline: none; cursor: pointer; border: none; padding: 0;
     }
-    .setting-row input[type=range].red-range { accent-color: #dc2626; }
-    .setting-val { font-size: 11px; font-weight: 700; min-width: 32px; text-align: right; }
+    input[type=range].cug-range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 13px; height: 13px; border-radius: 50%;
+      cursor: pointer; border: none;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+    }
+    input[type=range].cug-range::-moz-range-thumb {
+      width: 13px; height: 13px; border-radius: 50%;
+      cursor: pointer; border: none;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+    }
+    input[type=range].orange-range::-webkit-slider-thumb { background: #d97706; }
+    input[type=range].orange-range::-moz-range-thumb    { background: #d97706; }
+    input[type=range].red-range::-webkit-slider-thumb   { background: #dc2626; }
+    input[type=range].red-range::-moz-range-thumb       { background: #dc2626; }
+
+    /* Numeric input */
+    .setting-num {
+      width: 42px; padding: 3px 5px; border-radius: 6px;
+      border: 1px solid var(--border); background: var(--bg);
+      color: var(--text); font-size: 12px; font-weight: 700;
+      text-align: center; font-family: inherit;
+      -moz-appearance: textfield;
+    }
+    .setting-num::-webkit-inner-spin-button,
+    .setting-num::-webkit-outer-spin-button { -webkit-appearance: none; }
+    .setting-num:focus { outline: none; border-color: var(--muted); }
+    .s-unit { font-size: 11px; color: var(--muted); }
 
     /* ── Extra credits ── */
     #section-credits { display: none; }
@@ -188,25 +220,32 @@
     <h1>Claude Usage<span id="p-subtitle"></span></h1>
     <div class="hdr-actions">
       <button class="btn-gear" id="btn-gear" title="Réglages">
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-          <path d="M8 5a3 3 0 1 0 0 6A3 3 0 0 0 8 5zm0 1.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z"/>
-          <path d="M6.5 1.5h3l.4 1.6a5 5 0 0 1 1.1.65l1.6-.5 1.5 2.6-1.2 1.1a5 5 0 0 1 0 1.1l1.2 1.1-1.5 2.6-1.6-.5a5 5 0 0 1-1.1.65l-.4 1.6h-3l-.4-1.6a5 5 0 0 1-1.1-.65l-1.6.5L2 11.05l1.2-1.1a5 5 0 0 1 0-1.1L2 7.75l1.5-2.6 1.6.5A5 5 0 0 1 6.1 3.1L6.5 1.5z"/>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96a7 7 0 0 0-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54a7.37 7.37 0 0 0-1.62.94l-2.39-.96a.48.48 0 0 0-.59.22L2.74 8.87a.47.47 0 0 0 .12.61l2.03 1.58c-.05.3-.07.63-.07.94s.02.64.07.94l-2.03 1.58a.47.47 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54a7.37 7.37 0 0 0 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.47.47 0 0 0-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z"/>
         </svg>
       </button>
     </div>
   </header>
 
   <div id="settings-panel">
-    <div class="settings-title" id="settings-title">Réglages</div>
+    <div class="settings-title">Réglages des seuils</div>
     <div class="setting-row">
-      <span class="setting-label" id="lbl-orange" style="color:#d97706;font-weight:600;">● Orange</span>
-      <input type="range" id="sl-orange" min="10" max="90" step="5" value="50">
-      <span class="setting-val" id="val-orange" style="color:#d97706">50%</span>
+      <div class="setting-dot-lbl">
+        <span class="s-dot" style="background:#d97706"></span>
+        <span style="color:#d97706">Orange</span>
+      </div>
+      <input type="range" id="sl-orange" class="cug-range orange-range" min="10" max="90" step="5" value="50">
+      <input type="number" id="num-orange" class="setting-num" min="10" max="90" step="5" value="50">
+      <span class="s-unit">%</span>
     </div>
     <div class="setting-row">
-      <span class="setting-label" id="lbl-red" style="color:#dc2626;font-weight:600;">● Rouge</span>
-      <input type="range" id="sl-red" class="red-range" min="10" max="100" step="5" value="75">
-      <span class="setting-val" id="val-red" style="color:#dc2626">75%</span>
+      <div class="setting-dot-lbl">
+        <span class="s-dot" style="background:#dc2626"></span>
+        <span style="color:#dc2626">Rouge</span>
+      </div>
+      <input type="range" id="sl-red" class="cug-range red-range" min="15" max="100" step="5" value="75">
+      <input type="number" id="num-red" class="setting-num" min="15" max="100" step="5" value="75">
+      <span class="s-unit">%</span>
     </div>
   </div>
 

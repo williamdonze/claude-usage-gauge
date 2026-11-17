@@ -235,8 +235,12 @@ function renderCredits(data) {
 }
 
 function render(data) {
+  _lastData = data;
   document.getElementById("loading").style.display = "none";
-  document.getElementById("main").style.display = "block";
+  // Don't show main if settings panel is open
+  if (!document.getElementById("settings-panel").classList.contains("open")) {
+    document.getElementById("main").style.display = "block";
+  }
 
   function fillRow(prefix, utilization, resetsAt) {
     const pct = utilization ?? 0;
@@ -317,49 +321,71 @@ async function refresh() {
   render(cached?.data || null);
 }
 
-function applySettingsUI() {
-  document.getElementById("sl-orange").value = cugSettings.orangeAt;
-  document.getElementById("val-orange").textContent = cugSettings.orangeAt + "%";
-  document.getElementById("sl-red").value = cugSettings.redAt;
-  document.getElementById("val-red").textContent = cugSettings.redAt + "%";
+function sliderFill(el, color) {
+  const pct = ((el.value - el.min) / (el.max - el.min)) * 100;
+  const track = getComputedStyle(document.documentElement).getPropertyValue("--subtle").trim() || "rgba(0,0,0,0.08)";
+  el.style.background = `linear-gradient(to right,${color} ${pct}%,${track} ${pct}%)`;
 }
+
+function applySettingsUI() {
+  const slO = document.getElementById("sl-orange");
+  const slR = document.getElementById("sl-red");
+  slO.value = cugSettings.orangeAt;
+  slR.value = cugSettings.redAt;
+  document.getElementById("num-orange").value = cugSettings.orangeAt;
+  document.getElementById("num-red").value    = cugSettings.redAt;
+  sliderFill(slO, "#d97706");
+  sliderFill(slR, "#dc2626");
+}
+
+let _lastData = null;
 
 async function saveSettings() {
   await chrome.storage.local.set({ cugSettings });
-  // Notify open tabs to re-render with new thresholds
   const tabs = await new Promise((r) => chrome.tabs.query({ url: "*://claude.ai/*" }, r));
   for (const t of tabs) {
     chrome.tabs.sendMessage(t.id, { type: "SETTINGS_CHANGED", settings: cugSettings }).catch(() => {});
   }
+  chrome.runtime.sendMessage({ type: "REFRESH_ICON" }).catch(() => {});
+  if (_lastData) render(_lastData);
 }
 
 function wireSettingsPanel() {
   const btn   = document.getElementById("btn-gear");
   const panel = document.getElementById("settings-panel");
+  const main  = document.getElementById("main");
+
   btn.addEventListener("click", () => {
     const open = panel.classList.toggle("open");
     btn.classList.toggle("active", open);
+    if (main.style.display !== "none") main.dataset.wasVisible = "1";
+    main.style.display = open ? "none" : (main.dataset.wasVisible ? "block" : "none");
   });
 
-  const slOrange = document.getElementById("sl-orange");
-  const slRed    = document.getElementById("sl-red");
+  const slO  = document.getElementById("sl-orange");
+  const slR  = document.getElementById("sl-red");
+  const numO = document.getElementById("num-orange");
+  const numR = document.getElementById("num-red");
 
-  slOrange.addEventListener("input", () => {
-    const v = parseInt(slOrange.value);
-    // Keep orange < red
-    if (v >= cugSettings.redAt) { slOrange.value = cugSettings.redAt - 5; return; }
+  function setOrange(v) {
+    v = Math.max(10, Math.min(v, cugSettings.redAt - 5));
     cugSettings.orangeAt = v;
-    document.getElementById("val-orange").textContent = v + "%";
+    slO.value  = v; numO.value = v;
+    sliderFill(slO, "#d97706");
     saveSettings();
-  });
-
-  slRed.addEventListener("input", () => {
-    const v = parseInt(slRed.value);
-    if (v <= cugSettings.orangeAt) { slRed.value = cugSettings.orangeAt + 5; return; }
+  }
+  function setRed(v) {
+    v = Math.max(cugSettings.orangeAt + 5, Math.min(v, 100));
     cugSettings.redAt = v;
-    document.getElementById("val-red").textContent = v + "%";
+    slR.value  = v; numR.value = v;
+    sliderFill(slR, "#dc2626");
     saveSettings();
-  });
+  }
+
+  slO.addEventListener("input",  () => setOrange(parseInt(slO.value)));
+  numO.addEventListener("change", () => setOrange(parseInt(numO.value) || cugSettings.orangeAt));
+  slR.addEventListener("input",  () => setRed(parseInt(slR.value)));
+  numR.addEventListener("change", () => setRed(parseInt(numR.value) || cugSettings.redAt));
 }
 
 applyStaticText();

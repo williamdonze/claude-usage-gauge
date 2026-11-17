@@ -106,6 +106,10 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     fetchUsage().then((data) => sendResponse({ data }));
     return true;
   }
+  if (msg.type === "REFRESH_ICON") {
+    chrome.storage.local.get("usageData", ({ usageData }) => updateIcon(usageData || null));
+    return false;
+  }
 });
 
 // Restore icon on startup
