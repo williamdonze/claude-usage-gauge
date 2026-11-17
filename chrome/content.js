@@ -1,4 +1,4 @@
-// content.js v9
+// content.js v10
 
 (function () {
   "use strict";
@@ -37,35 +37,35 @@
   }
 
   const TRANSLATIONS = {
-    fr: { session: "Session 5h", week: "7 jours :", reset: "reset imminent",
-          resetIn: (d,h,m) => d>0 ? (h>0?`↺ ${d}j ${h}h`:`↺ ${d}j`) : h>0 ? `↺ ${h}h${String(m).padStart(2,"0")}` : `↺ ${m}m` },
-    en: { session: "5h session", week: "7 days:", reset: "resetting soon",
-          resetIn: (d,h,m) => d>0 ? (h>0?`↺ ${d}d ${h}h`:`↺ ${d}d`) : h>0 ? `↺ ${h}h${String(m).padStart(2,"0")}` : `↺ ${m}m` },
-    es: { session: "Sesión 5h", week: "7 días:", reset: "reinicio inminente",
-          resetIn: (d,h,m) => d>0 ? (h>0?`↺ ${d}d ${h}h`:`↺ ${d}d`) : h>0 ? `↺ ${h}h${String(m).padStart(2,"0")}` : `↺ ${m}m` },
-    de: { session: "5h-Sitzung", week: "7 Tage:", reset: "Reset bald",
-          resetIn: (d,h,m) => d>0 ? (h>0?`↺ ${d}T ${h}h`:`↺ ${d}T`) : h>0 ? `↺ ${h}h${String(m).padStart(2,"0")}` : `↺ ${m}m` },
-    pt: { session: "Sessão 5h", week: "7 dias:", reset: "reset iminente",
-          resetIn: (d,h,m) => d>0 ? (h>0?`↺ ${d}d ${h}h`:`↺ ${d}d`) : h>0 ? `↺ ${h}h${String(m).padStart(2,"0")}` : `↺ ${m}m` },
-    ja: { session: "5時間セッション", week: "7日間:", reset: "まもなくリセット",
-          resetIn: (d,h,m) => d>0 ? (h>0?`↺ ${d}日${h}時間`:`↺ ${d}日`) : h>0 ? `↺ ${h}時間${String(m).padStart(2,"0")}分` : `↺ ${m}分` },
-    zh: { session: "5小时会话", week: "7天:", reset: "即将重置",
-          resetIn: (d,h,m) => d>0 ? (h>0?`↺ ${d}天${h}小时`:`↺ ${d}天`) : h>0 ? `↺ ${h}小时${String(m).padStart(2,"0")}分` : `↺ ${m}分` },
-    ko: { session: "5시간 세션", week: "7일:", reset: "곧 초기화",
-          resetIn: (d,h,m) => d>0 ? (h>0?`↺ ${d}일 ${h}시간`:`↺ ${d}일`) : h>0 ? `↺ ${h}시간${String(m).padStart(2,"0")}분` : `↺ ${m}분` },
+    fr: { session: "5h", week: "7 jours", reset: "reset imminent",
+          resetIn: (d,h,m) => d>0 ? (h>0?`${d}j ${h}h`:`${d}j`) : h>0 ? `${h}h${String(m).padStart(2,"0")}` : `${m}m` },
+    en: { session: "5h", week: "7 days", reset: "resetting soon",
+          resetIn: (d,h,m) => d>0 ? (h>0?`${d}d ${h}h`:`${d}d`) : h>0 ? `${h}h${String(m).padStart(2,"0")}` : `${m}m` },
+    es: { session: "5h", week: "7 días", reset: "reinicio inminente",
+          resetIn: (d,h,m) => d>0 ? (h>0?`${d}d ${h}h`:`${d}d`) : h>0 ? `${h}h${String(m).padStart(2,"0")}` : `${m}m` },
+    de: { session: "5h", week: "7 Tage", reset: "Reset bald",
+          resetIn: (d,h,m) => d>0 ? (h>0?`${d}T ${h}h`:`${d}T`) : h>0 ? `${h}h${String(m).padStart(2,"0")}` : `${m}m` },
+    pt: { session: "5h", week: "7 dias", reset: "reset iminente",
+          resetIn: (d,h,m) => d>0 ? (h>0?`${d}d ${h}h`:`${d}d`) : h>0 ? `${h}h${String(m).padStart(2,"0")}` : `${m}m` },
+    ja: { session: "5時間", week: "7日間", reset: "まもなくリセット",
+          resetIn: (d,h,m) => d>0 ? (h>0?`${d}日${h}時間`:`${d}日`) : h>0 ? `${h}時間${String(m).padStart(2,"0")}分` : `${m}分` },
+    zh: { session: "5小时", week: "7天", reset: "即将重置",
+          resetIn: (d,h,m) => d>0 ? (h>0?`${d}天${h}小时`:`${d}天`) : h>0 ? `${h}小时${String(m).padStart(2,"0")}分` : `${m}分` },
+    ko: { session: "5시간", week: "7일", reset: "곧 초기화",
+          resetIn: (d,h,m) => d>0 ? (h>0?`${d}일 ${h}시간`:`${d}일`) : h>0 ? `${h}시간${String(m).padStart(2,"0")}분` : `${m}분` },
   };
   const lang = (navigator.language || "en").toLowerCase().split("-")[0];
   const T = TRANSLATIONS[lang] || TRANSLATIONS.en;
 
   function formatReset(iso) {
-    if (!iso) return "";
+    if (!iso) return "—";
     const diff = new Date(iso) - Date.now();
     if (diff <= 0) return T.reset;
     const totalMinutes = Math.floor(diff / 60000);
     const d = Math.floor(totalMinutes / 1440);
     const h = Math.floor((totalMinutes % 1440) / 60);
     const m = totalMinutes % 60;
-    return T.resetIn(d, h, m);
+    return "↻ " + T.resetIn(d, h, m);
   }
 
   function color(pct) {
@@ -84,47 +84,48 @@
   }
   function txt(tag, cls, text) { const e = mk(tag, null, cls); e.textContent = text; return e; }
 
+  function buildCol(prefix, label) {
+    const col = mk("div", null, "cug-col");
+    const top = mk("div", null, "cug-col-top");
+    top.appendChild(txt("span", "cug-label", label));
+    top.appendChild(mk("span", `cug-${prefix}-pct`, "cug-pct"));
+    const track = mk("div", null, "cug-track");
+    track.appendChild(mk("div", `cug-${prefix}-fill`, "cug-fill"));
+    const rst = mk("span", `cug-${prefix}-rst`, "cug-rst");
+    col.appendChild(top);
+    col.appendChild(track);
+    col.appendChild(rst);
+    return col;
+  }
+
   function buildGauge() {
-    const el    = mk("div", "claude-usage-gauge");
-    const wrap  = mk("div", null, "cug-bar-wrap");
-    const track = mk("div", null, "cug-bar-track");
-    track.appendChild(mk("div", "cug-fill", "cug-bar-fill"));
-    const labels = mk("div", null, "cug-bar-labels");
-    const left   = mk("span", null, "cug-label-left");
-    left.appendChild(mk("span", "cug-dot", "cug-dot"));
-    left.appendChild(txt("span", "cug-session-label", T.session));
-    left.appendChild(mk("span", "cug-5h-pct", "cug-pct-val"));
-    left.appendChild(mk("span", "cug-5h-rst", "cug-reset-val"));
-    const right  = mk("span", null, "cug-label-right");
-    right.appendChild(txt("span", "cug-week-label", T.week));
-    right.appendChild(mk("span", "cug-7d-pct", "cug-week-pct"));
-    labels.appendChild(left);
-    labels.appendChild(right);
-    wrap.appendChild(track);
-    wrap.appendChild(labels);
-    el.appendChild(wrap);
+    const el   = mk("div", "claude-usage-gauge");
+    const cols = mk("div", null, "cug-cols");
+    const sep  = mk("div", null, "cug-sep");
+    cols.appendChild(buildCol("5h", T.session));
+    cols.appendChild(sep);
+    cols.appendChild(buildCol("7d", T.week));
+    el.appendChild(cols);
     return el;
   }
 
   let lastData = null;
 
+  function fillCol(prefix, pct, iso) {
+    const c = color(pct);
+    const pctEl  = document.getElementById(`cug-${prefix}-pct`);
+    const fillEl = document.getElementById(`cug-${prefix}-fill`);
+    const rstEl  = document.getElementById(`cug-${prefix}-rst`);
+    if (pctEl)  { pctEl.textContent = `${Math.round(pct)}%`; pctEl.style.color = c; }
+    if (fillEl) { fillEl.style.width = `${Math.min(100, pct)}%`; fillEl.style.background = c; }
+    if (rstEl)  { rstEl.textContent = formatReset(iso); }
+  }
+
   function applyData(d) {
     lastData = d;
     if (!gaugeEl) return;
-    const p5 = d.five_hour?.utilization ?? 0;
-    const p7 = d.seven_day?.utilization ?? 0;
-    const c5 = color(p5);
-    const fill = document.getElementById("cug-fill");
-    const dot  = document.getElementById("cug-dot");
-    const pct5 = document.getElementById("cug-5h-pct");
-    const rst5 = document.getElementById("cug-5h-rst");
-    const pct7 = document.getElementById("cug-7d-pct");
-    if (fill)  { fill.style.width = `${Math.min(100, p5)}%`; fill.style.background = c5; }
-    if (dot)   { dot.style.color = c5; dot.style.background = c5; }
-    if (pct5)  { pct5.textContent = `${Math.round(p5)}%`; pct5.style.color = c5; }
-    if (rst5)  { rst5.textContent = formatReset(d.five_hour?.resets_at); }
-    if (pct7)  { pct7.textContent = `${Math.round(p7)}%`; pct7.style.color = color(p7); }
-    if (Math.round(p5) === 67) showPet(); else hidePet();
+    fillCol("5h", d.five_hour?.utilization ?? 0, d.five_hour?.resets_at);
+    fillCol("7d", d.seven_day?.utilization ?? 0, d.seven_day?.resets_at);
   }
 
   async function loadAndRender() {
@@ -135,95 +136,19 @@
     try { chrome.runtime.sendMessage({ type: "STORE_DATA", data: d }); } catch(e) {}
   }
 
-  // ── Animation 67% ──────────────────────────────────────────────────────
-
-  const PET_FRAMES = [
-    `<svg shape-rendering="crispEdges" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 912 608"><rect fill="#d97757" x="151.7" y="456.3" width="76" height="76"/><rect fill="#d97757" x="227.7" y="456.3" width="76" height="76"/><rect fill="#d97757" x="151.7" y="532.3" width="76" height="76"/><rect fill="#d97757" x="303.7" y="456.3" width="76" height="76"/><rect fill="#d97757" x="303.7" y="532.3" width="76" height="76"/><rect fill="#d97757" x="379.7" y="456.3" width="76" height="76"/><rect fill="#d97757" x="455.7" y="456.3" width="76" height="76"/><rect fill="#d97757" x="607.7" y="456.3" width="76" height="76"/><rect fill="#d97757" x="531.7" y="456.3" width="76" height="76"/><rect fill="#d97757" x="531.7" y="532.3" width="76" height="76"/><rect fill="#d97757" x="683.7" y="456.3" width="76" height="76"/><rect fill="#d97757" x="151.7" y="380.3" width="76" height="76"/><rect fill="#d97757" x="227.7" y="380.3" width="76" height="76"/><rect fill="#d97757" x="303.7" y="380.3" width="76" height="76"/><rect fill="#d97757" x="379.7" y="380.3" width="76" height="76"/><rect fill="#d97757" x="455.7" y="380.3" width="76" height="76"/><rect fill="#d97757" x="607.7" y="380.3" width="76" height="76"/><rect fill="#d97757" x="531.7" y="380.3" width="76" height="76"/><rect fill="#d97757" x="683.7" y="380.3" width="76" height="76"/><rect fill="#d97757" x="151.7" y="304.3" width="76" height="76"/><rect fill="#d97757" x="227.7" y="304.3" width="76" height="76"/><rect fill="#d97757" x="303.7" y="304.3" width="76" height="76"/><rect fill="#d97757" x="379.7" y="304.3" width="76" height="76"/><rect fill="#d97757" x="455.7" y="304.3" width="76" height="76"/><rect fill="#d97757" x="607.7" y="304.3" width="76" height="76"/><rect fill="#d97757" x="531.7" y="304.3" width="76" height="76"/><rect fill="#d97757" x="683.7" y="304.3" width="76" height="76"/><rect fill="#d97757" x="151.7" y="228.3" width="76" height="76"/><rect fill="#d97757" x="227.7" y="228.3" width="76" height="76"/><rect fill="#d97757" x="303.7" y="228.3" width="76" height="76"/><rect fill="#d97757" x="379.7" y="228.3" width="76" height="76"/><rect fill="#d97757" x="455.7" y="228.3" width="76" height="76"/><rect fill="#d97757" x="607.7" y="228.3" width="76" height="76"/><rect fill="#d97757" x="531.7" y="228.3" width="76" height="76"/><rect fill="#d97757" x="683.7" y="228.3" width="76" height="76"/><rect fill="#d97757" x="151.7" y="152.3" width="76" height="76"/><rect fill="#d97757" x="227.7" y="152.3" width="76" height="76"/><rect fill="#d97757" x="303.7" y="152.3" width="76" height="76"/><rect fill="#d97757" x="379.7" y="152.3" width="76" height="76"/><rect fill="#d97757" x="455.7" y="152.3" width="76" height="76"/><rect fill="#d97757" x="607.7" y="152.3" width="76" height="76"/><rect fill="#d97757" x="531.7" y="152.3" width="76" height="76"/><rect fill="#d97757" x="683.7" y="152.3" width="76" height="76"/><rect fill="#c0694e" x="759.7" y="228.3" width="76" height="76"/><rect fill="#d97757" x="835.7" y="228.3" width="76" height="76"/><rect fill="#c0694e" x="759.7" y="152.3" width="76" height="76"/><rect fill="#d97757" x="835.7" y="152.3" width="76" height="76"/><rect fill="#c0694e" x="75.7" y="152.3" width="76" height="76"/><rect fill="#c0694e" x="75.7" y="228.3" width="76" height="76"/><rect fill="#d97757" x="-.3" y="152.3" width="76" height="76"/><rect fill="#d97757" x="-.3" y="228.3" width="76" height="76"/><rect fill="#d97757" x="151.7" y="76.3" width="76" height="76"/><rect x="227.7" y="76.3" width="76" height="76"/><rect fill="#d97757" x="303.7" y="76.3" width="76" height="76"/><rect fill="#d97757" x="379.7" y="76.3" width="76" height="76"/><rect fill="#d97757" x="455.7" y="76.3" width="76" height="76"/><rect x="607.7" y="76.3" width="76" height="76"/><rect fill="#d97757" x="531.7" y="76.3" width="76" height="76"/><rect fill="#d97757" x="683.7" y="76.3" width="76" height="76"/><rect fill="#d97757" x="151.7" y=".3" width="76" height="76"/><rect fill="#d97757" x="227.7" y=".3" width="76" height="76"/><rect fill="#d97757" x="303.7" y=".3" width="76" height="76"/><rect fill="#d97757" x="379.7" y=".3" width="76" height="76"/><rect fill="#d97757" x="455.7" y=".3" width="76" height="76"/><rect fill="#d97757" x="607.7" y=".3" width="76" height="76"/><rect fill="#d97757" x="531.7" y=".3" width="76" height="76"/><rect fill="#d97757" x="683.7" y=".3" width="76" height="76"/><rect fill="#d97757" x="683.7" y="532.3" width="76" height="76"/></svg>`,
-    `<svg shape-rendering="crispEdges" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 912 608"><rect fill="#d97757" x="151.7" y="456.3" width="76" height="76"/><rect fill="#d97757" x="227.7" y="456.3" width="76" height="76"/><rect fill="#d97757" x="151.7" y="532.3" width="76" height="76"/><rect fill="#d97757" x="303.7" y="456.3" width="76" height="76"/><rect fill="#d97757" x="303.7" y="532.3" width="76" height="76"/><rect fill="#d97757" x="379.7" y="456.3" width="76" height="76"/><rect fill="#d97757" x="455.7" y="456.3" width="76" height="76"/><rect fill="#d97757" x="607.7" y="456.3" width="76" height="76"/><rect fill="#d97757" x="531.7" y="456.3" width="76" height="76"/><rect fill="#d97757" x="531.7" y="532.3" width="76" height="76"/><rect fill="#d97757" x="683.7" y="456.3" width="76" height="76"/><rect fill="#d97757" x="151.7" y="380.3" width="76" height="76"/><rect fill="#d97757" x="227.7" y="380.3" width="76" height="76"/><rect fill="#d97757" x="303.7" y="380.3" width="76" height="76"/><rect fill="#d97757" x="379.7" y="380.3" width="76" height="76"/><rect fill="#d97757" x="455.7" y="380.3" width="76" height="76"/><rect fill="#d97757" x="607.7" y="380.3" width="76" height="76"/><rect fill="#d97757" x="531.7" y="380.3" width="76" height="76"/><rect fill="#d97757" x="683.7" y="380.3" width="76" height="76"/><rect fill="#d97757" x="151.7" y="304.3" width="76" height="76"/><rect fill="#d97757" x="227.7" y="304.3" width="76" height="76"/><rect fill="#d97757" x="303.7" y="304.3" width="76" height="76"/><rect fill="#d97757" x="379.7" y="304.3" width="76" height="76"/><rect fill="#d97757" x="455.7" y="304.3" width="76" height="76"/><rect fill="#d97757" x="607.7" y="304.3" width="76" height="76"/><rect fill="#d97757" x="531.7" y="304.3" width="76" height="76"/><rect fill="#d97757" x="683.7" y="304.3" width="76" height="76"/><rect fill="#d97757" x="151.7" y="228.3" width="76" height="76"/><rect fill="#d97757" x="227.7" y="228.3" width="76" height="76"/><rect fill="#d97757" x="303.7" y="228.3" width="76" height="76"/><rect fill="#d97757" x="379.7" y="228.3" width="76" height="76"/><rect fill="#d97757" x="455.7" y="228.3" width="76" height="76"/><rect fill="#d97757" x="607.7" y="228.3" width="76" height="76"/><rect fill="#d97757" x="531.7" y="228.3" width="76" height="76"/><rect fill="#d97757" x="683.7" y="228.3" width="76" height="76"/><rect fill="#d97757" x="151.7" y="152.3" width="76" height="76"/><rect fill="#d97757" x="227.7" y="152.3" width="76" height="76"/><rect fill="#d97757" x="303.7" y="152.3" width="76" height="76"/><rect fill="#d97757" x="379.7" y="152.3" width="76" height="76"/><rect fill="#d97757" x="455.7" y="152.3" width="76" height="76"/><rect fill="#d97757" x="607.7" y="152.3" width="76" height="76"/><rect fill="#d97757" x="531.7" y="152.3" width="76" height="76"/><rect fill="#d97757" x="683.7" y="152.3" width="76" height="76"/><rect fill="#c0694e" x="759.7" y="278.3" width="76" height="76"/><rect fill="#d97757" x="835.7" y="278.3" width="76" height="76"/><rect fill="#c0694e" x="759.7" y="202.3" width="76" height="76"/><rect fill="#d97757" x="835.7" y="202.3" width="76" height="76"/><rect fill="#c0694e" x="75.7" y="102.3" width="76" height="76"/><rect fill="#c0694e" x="75.7" y="178.3" width="76" height="76"/><rect fill="#d97757" x="-.3" y="102.3" width="76" height="76"/><rect fill="#d97757" x="-.3" y="178.3" width="76" height="76"/><rect fill="#d97757" x="151.7" y="76.3" width="76" height="76"/><rect x="227.7" y="76.3" width="76" height="76"/><rect fill="#d97757" x="303.7" y="76.3" width="76" height="76"/><rect fill="#d97757" x="379.7" y="76.3" width="76" height="76"/><rect fill="#d97757" x="455.7" y="76.3" width="76" height="76"/><rect x="607.7" y="76.3" width="76" height="76"/><rect fill="#d97757" x="531.7" y="76.3" width="76" height="76"/><rect fill="#d97757" x="683.7" y="76.3" width="76" height="76"/><rect fill="#d97757" x="151.7" y=".3" width="76" height="76"/><rect fill="#d97757" x="227.7" y=".3" width="76" height="76"/><rect fill="#d97757" x="303.7" y=".3" width="76" height="76"/><rect fill="#d97757" x="379.7" y=".3" width="76" height="76"/><rect fill="#d97757" x="455.7" y=".3" width="76" height="76"/><rect fill="#d97757" x="607.7" y=".3" width="76" height="76"/><rect fill="#d97757" x="531.7" y=".3" width="76" height="76"/><rect fill="#d97757" x="683.7" y=".3" width="76" height="76"/><rect fill="#d97757" x="683.7" y="532.3" width="76" height="76"/></svg>`,
-    `<svg shape-rendering="crispEdges" preserveAspectRatio="xMidYMax meet" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 912 608"><rect fill="#d97757" x="151.7" y="456.3" width="76" height="76"/><rect fill="#d97757" x="227.7" y="456.3" width="76" height="76"/><rect fill="#d97757" x="151.7" y="532.3" width="76" height="76"/><rect fill="#d97757" x="303.7" y="456.3" width="76" height="76"/><rect fill="#d97757" x="303.7" y="532.3" width="76" height="76"/><rect fill="#d97757" x="379.7" y="456.3" width="76" height="76"/><rect fill="#d97757" x="455.7" y="456.3" width="76" height="76"/><rect fill="#d97757" x="607.7" y="456.3" width="76" height="76"/><rect fill="#d97757" x="531.7" y="456.3" width="76" height="76"/><rect fill="#d97757" x="531.7" y="532.3" width="76" height="76"/><rect fill="#d97757" x="683.7" y="456.3" width="76" height="76"/><rect fill="#d97757" x="151.7" y="380.3" width="76" height="76"/><rect fill="#d97757" x="227.7" y="380.3" width="76" height="76"/><rect fill="#d97757" x="303.7" y="380.3" width="76" height="76"/><rect fill="#d97757" x="379.7" y="380.3" width="76" height="76"/><rect fill="#d97757" x="455.7" y="380.3" width="76" height="76"/><rect fill="#d97757" x="607.7" y="380.3" width="76" height="76"/><rect fill="#d97757" x="531.7" y="380.3" width="76" height="76"/><rect fill="#d97757" x="683.7" y="380.3" width="76" height="76"/><rect fill="#d97757" x="151.7" y="304.3" width="76" height="76"/><rect fill="#d97757" x="227.7" y="304.3" width="76" height="76"/><rect fill="#d97757" x="303.7" y="304.3" width="76" height="76"/><rect fill="#d97757" x="379.7" y="304.3" width="76" height="76"/><rect fill="#d97757" x="455.7" y="304.3" width="76" height="76"/><rect fill="#d97757" x="607.7" y="304.3" width="76" height="76"/><rect fill="#d97757" x="531.7" y="304.3" width="76" height="76"/><rect fill="#d97757" x="683.7" y="304.3" width="76" height="76"/><rect fill="#d97757" x="151.7" y="228.3" width="76" height="76"/><rect fill="#d97757" x="227.7" y="228.3" width="76" height="76"/><rect fill="#d97757" x="303.7" y="228.3" width="76" height="76"/><rect fill="#d97757" x="379.7" y="228.3" width="76" height="76"/><rect fill="#d97757" x="455.7" y="228.3" width="76" height="76"/><rect fill="#d97757" x="607.7" y="228.3" width="76" height="76"/><rect fill="#d97757" x="531.7" y="228.3" width="76" height="76"/><rect fill="#d97757" x="683.7" y="228.3" width="76" height="76"/><rect fill="#d97757" x="151.7" y="152.3" width="76" height="76"/><rect fill="#d97757" x="227.7" y="152.3" width="76" height="76"/><rect fill="#d97757" x="303.7" y="152.3" width="76" height="76"/><rect fill="#d97757" x="379.7" y="152.3" width="76" height="76"/><rect fill="#d97757" x="455.7" y="152.3" width="76" height="76"/><rect fill="#d97757" x="607.7" y="152.3" width="76" height="76"/><rect fill="#d97757" x="531.7" y="152.3" width="76" height="76"/><rect fill="#d97757" x="683.7" y="152.3" width="76" height="76"/><rect fill="#c0694e" x="759.7" y="178.3" width="76" height="76"/><rect fill="#d97757" x="835.7" y="178.3" width="76" height="76"/><rect fill="#c0694e" x="759.7" y="102.3" width="76" height="76"/><rect fill="#d97757" x="835.7" y="102.3" width="76" height="76"/><rect fill="#c0694e" x="75.7" y="202.3" width="76" height="76"/><rect fill="#c0694e" x="75.7" y="278.3" width="76" height="76"/><rect fill="#d97757" x="-.3" y="202.3" width="76" height="76"/><rect fill="#d97757" x="-.3" y="278.3" width="76" height="76"/><rect fill="#d97757" x="151.7" y="76.3" width="76" height="76"/><rect x="227.7" y="76.3" width="76" height="76"/><rect fill="#d97757" x="303.7" y="76.3" width="76" height="76"/><rect fill="#d97757" x="379.7" y="76.3" width="76" height="76"/><rect fill="#d97757" x="455.7" y="76.3" width="76" height="76"/><rect x="607.7" y="76.3" width="76" height="76"/><rect fill="#d97757" x="531.7" y="76.3" width="76" height="76"/><rect fill="#d97757" x="683.7" y="76.3" width="76" height="76"/><rect fill="#d97757" x="151.7" y=".3" width="76" height="76"/><rect fill="#d97757" x="227.7" y=".3" width="76" height="76"/><rect fill="#d97757" x="303.7" y=".3" width="76" height="76"/><rect fill="#d97757" x="379.7" y=".3" width="76" height="76"/><rect fill="#d97757" x="455.7" y=".3" width="76" height="76"/><rect fill="#d97757" x="607.7" y=".3" width="76" height="76"/><rect fill="#d97757" x="531.7" y=".3" width="76" height="76"/><rect fill="#d97757" x="683.7" y=".3" width="76" height="76"/><rect fill="#d97757" x="683.7" y="532.3" width="76" height="76"/></svg>`,
-  ];
-
-  let petEl = null;
-  let petTimer = null;
-  let petFrame = 0;
-  let petLooping = false;
-
-  function parseSvg(str) {
-    return new DOMParser().parseFromString(str, "image/svg+xml").documentElement;
-  }
-  function setSvg(el, str) {
-    el.replaceChildren(parseSvg(str));
-  }
-
-  function buildPet() {
-    const el = document.createElement("div");
-    el.id = "cug-pet";
-    setSvg(el, PET_FRAMES[0]);
-    return el;
-  }
-
-  function positionPet() {
-    if (!petEl || !gaugeEl) return;
-    const rect = gaugeEl.getBoundingClientRect();
-    const petW = petEl.offsetWidth || 38;
-    petEl.style.bottom = `${window.innerHeight - rect.top}px`;
-    petEl.style.left   = `${rect.right - petW}px`;
-    petEl.style.right  = "auto";
-  }
-
-  function stepPet() {
-    if (!petEl) return;
-    if (!petLooping) {
-      setSvg(petEl, PET_FRAMES[1]);
-      petFrame = 1;
-      petLooping = true;
-      petTimer = setInterval(() => {
-        petFrame = petFrame === 1 ? 2 : 1;
-        if (petEl) setSvg(petEl, PET_FRAMES[petFrame]);
-      }, 200);
-    }
-  }
-
-  function showPet() {
-    if (document.getElementById("cug-pet")) return;
-    petEl = buildPet();
-    document.body.appendChild(petEl);
-    requestAnimationFrame(positionPet);
-    window.addEventListener("resize", positionPet);
-    petLooping = false;
-    petFrame = 0;
-    setTimeout(stepPet, 600);
-  }
-
-  function hidePet() {
-    window.removeEventListener("resize", positionPet);
-    if (petTimer) { clearInterval(petTimer); petTimer = null; }
-    if (petEl) { petEl.remove(); petEl = null; }
-    petLooping = false;
-    petFrame = 0;
-  }
-
-
-
   function isExcludedPage() {
     const p = location.pathname;
     return p.startsWith("/settings") || p.startsWith("/login") || p.startsWith("/signup");
   }
 
-  // ── Détecte si on est sur Claude Code (/code) ──────────────────────────
-
   function isClaudeCode() {
     return location.pathname.startsWith("/code");
   }
 
-  // ── Trouve le composer ──────────────────────────────────────────────────
-
   function findComposer() {
-    // New claude.ai UI: main composer box has class rounded-composer
     const rounded = document.querySelector('[class*="rounded-composer"]');
     if (rounded) return rounded;
 
-    // Fallback: walk up from textarea
     const ta = document.querySelector("textarea")
              || document.querySelector('[contenteditable="true"]');
     if (!ta) return null;
@@ -248,11 +173,9 @@
     gaugeEl = buildGauge();
 
     if (isClaudeCode()) {
-      // Sur Claude Code, injecte après le composer pour ne pas bloquer l'input
       gaugeEl.style.marginTop = "6px";
       composer.parentElement.insertBefore(gaugeEl, composer.nextSibling);
     } else {
-      // Sur Claude normal, injecte à l'intérieur du composer (sous l'input)
       composer.appendChild(gaugeEl);
     }
 
@@ -280,18 +203,11 @@
     setInterval(() => {
       if (location.href !== last) {
         last = location.href;
-        if (isExcludedPage()) {
-          if (observer) { observer.disconnect(); observer = null; }
-          const el = document.getElementById("claude-usage-gauge");
-          if (el) el.remove();
-          gaugeEl = null;
-        } else {
-          if (observer) { observer.disconnect(); observer = null; }
-          const el2 = document.getElementById("claude-usage-gauge");
-          if (el2) el2.remove();
-          gaugeEl = null;
-          setTimeout(watchAndInject, 1000);
-        }
+        if (observer) { observer.disconnect(); observer = null; }
+        const el = document.getElementById("claude-usage-gauge");
+        if (el) el.remove();
+        gaugeEl = null;
+        if (!isExcludedPage()) setTimeout(watchAndInject, 1000);
       }
     }, 500);
   }
