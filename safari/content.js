@@ -32,25 +32,7 @@
     try {
       const res = await fetch(`${BASE}/api/organizations/${id}/usage`, { credentials: "include" });
       if (!res.ok) return null;
-      const data = await res.json();
-      // Try fetching breakdown from candidate endpoints
-      const breakdownUrls = [
-        `${BASE}/api/organizations/${id}/usage/breakdown`,
-        `${BASE}/api/organizations/${id}/stats`,
-        `${BASE}/api/organizations/${id}/usage_breakdown`,
-      ];
-      for (const url of breakdownUrls) {
-        try {
-          const r = await fetch(url, { credentials: "include" });
-          if (r.ok) {
-            const bd = await r.json();
-            log("breakdown endpoint found:", url, JSON.stringify(bd).slice(0, 200));
-            data._breakdown = bd;
-            break;
-          }
-        } catch(e) {}
-      }
-      return data;
+      return await res.json();
     } catch(e) { return null; }
   }
 
@@ -166,11 +148,7 @@
     if (!gaugeEl) return;
     const d = await fetchUsage();
     if (!d) { log("fetchUsage returned null"); return; }
-    log("keys:", JSON.stringify(Object.keys(d)), "5h:", d.five_hour?.utilization, "7d:", d.seven_day?.utilization);
-    // Log rich fields to understand their structure
-    for (const k of ["seven_day_breakdown","seven_day_opus","seven_day_sonnet","seven_day_cowork","seven_day_oauth_apps","spend","extra_usage","limits","promo_credits","pace","indicator","tangelo","omelette"]) {
-      if (d[k] !== undefined) log(k, "→", JSON.stringify(d[k]));
-    }
+    log("5h:", d.five_hour?.utilization, "7d:", d.seven_day?.utilization);
     applyData(d);
     try { browser.runtime.sendMessage({ type: "STORE_DATA", data: d }); } catch(e) {}
     return d;

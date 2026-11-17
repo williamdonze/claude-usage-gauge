@@ -10,8 +10,9 @@ const TRANSLATIONS = {
     refresh:     "↻ Actualiser",
     reset:       "reset imminent",
     resetIn:     (d, h, m) => d > 0 ? (h > 0 ? `${d}j ${h}h` : `${d}j`) : h > 0 ? `${h}h ${String(m).padStart(2,"0")}m` : `${m}m`,
-    breakdown:   "Utilisation par produit",
-    extraCred:   "Crédits supplémentaires",
+    breakdown:   "Répartition 7 jours",
+    extraCred:   "Crédits extra actifs",
+    creditsUsed: "Crédits utilisés",
   },
   en: {
     subtitle:    "Real-time data",
@@ -22,8 +23,9 @@ const TRANSLATIONS = {
     refresh:     "↻ Refresh",
     reset:       "resetting soon",
     resetIn:     (d, h, m) => d > 0 ? (h > 0 ? `${d}d ${h}h` : `${d}d`) : h > 0 ? `${h}h ${String(m).padStart(2,"0")}m` : `${m}m`,
-    breakdown:   "Usage by product",
-    extraCred:   "Extra credits used",
+    breakdown:   "7-day breakdown",
+    extraCred:   "Extra credits active",
+    creditsUsed: "Credits used",
   },
   es: {
     subtitle:    "Datos en tiempo real",
@@ -34,7 +36,9 @@ const TRANSLATIONS = {
     refresh:     "↻ Actualizar",
     reset:       "reinicio inminente",
     resetIn:     (d, h, m) => d > 0 ? (h > 0 ? `${d}d ${h}h` : `${d}d`) : h > 0 ? `${h}h ${String(m).padStart(2,"0")}m` : `${m}m`,
-    breakdown:   "Uso por producto",
+    breakdown:   "Desglose 7 días",
+    extraCred:   "Créditos extra activos",
+    creditsUsed: "Créditos usados",
     extraCred:   "Créditos adicionales",
   },
   de: {
@@ -46,7 +50,9 @@ const TRANSLATIONS = {
     refresh:     "↻ Aktualisieren",
     reset:       "Reset bald",
     resetIn:     (d, h, m) => d > 0 ? (h > 0 ? `${d}T ${h}h` : `${d}T`) : h > 0 ? `${h}h ${String(m).padStart(2,"0")}m` : `${m}m`,
-    breakdown:   "Nutzung nach Produkt",
+    breakdown:   "7-Tage-Aufschlüsselung",
+    extraCred:   "Extra-Credits aktiv",
+    creditsUsed: "Verbrauchte Credits",
     extraCred:   "Zusätzliche Credits",
   },
   pt: {
@@ -58,7 +64,9 @@ const TRANSLATIONS = {
     refresh:     "↻ Atualizar",
     reset:       "reset iminente",
     resetIn:     (d, h, m) => d > 0 ? (h > 0 ? `${d}d ${h}h` : `${d}d`) : h > 0 ? `${h}h ${String(m).padStart(2,"0")}m` : `${m}m`,
-    breakdown:   "Uso por produto",
+    breakdown:   "Divisão 7 dias",
+    extraCred:   "Créditos extras ativos",
+    creditsUsed: "Créditos usados",
     extraCred:   "Créditos extras",
   },
   ja: {
@@ -70,7 +78,9 @@ const TRANSLATIONS = {
     refresh:     "↻ 更新",
     reset:       "まもなくリセット",
     resetIn:     (d, h, m) => d > 0 ? (h > 0 ? `${d}日${h}時間` : `${d}日`) : h > 0 ? `${h}時間${String(m).padStart(2,"0")}分` : `${m}分`,
-    breakdown:   "製品別使用量",
+    breakdown:   "7日間の内訳",
+    extraCred:   "追加クレジット有効",
+    creditsUsed: "使用済みクレジット",
     extraCred:   "追加クレジット",
   },
   zh: {
@@ -82,7 +92,9 @@ const TRANSLATIONS = {
     refresh:     "↻ 刷新",
     reset:       "即将重置",
     resetIn:     (d, h, m) => d > 0 ? (h > 0 ? `${d}天${h}小时` : `${d}天`) : h > 0 ? `${h}小时${String(m).padStart(2,"0")}分` : `${m}分`,
-    breakdown:   "按产品使用量",
+    breakdown:   "7天细分",
+    extraCred:   "额外积分激活",
+    creditsUsed: "已用积分",
     extraCred:   "额外积分",
   },
   ko: {
@@ -94,7 +106,9 @@ const TRANSLATIONS = {
     refresh:     "↻ 새로고침",
     reset:       "곧 초기화",
     resetIn:     (d, h, m) => d > 0 ? (h > 0 ? `${d}일 ${h}시간` : `${d}일`) : h > 0 ? `${h}시간 ${String(m).padStart(2,"0")}분` : `${m}분`,
-    breakdown:   "제품별 사용량",
+    breakdown:   "7일 세부 분석",
+    extraCred:   "추가 크레딧 활성",
+    creditsUsed: "사용된 크레딧",
     extraCred:   "추가 크레딧",
   },
 };
@@ -139,74 +153,65 @@ function getColor(pct) {
   return "#dc2626";
 }
 
-// Map product keys from API to display names
-const PRODUCT_NAMES = {
-  claude_ai:         "Claude.ai",
-  claude_code:       "Claude Code",
-  api:               "API",
-  claude_api:        "API",
-  anthropic_api:     "API",
-  claude_ios:        "iOS",
-  claude_android:    "Android",
-  claude_desktop:    "Desktop",
-};
-
-function formatProductName(key) {
-  return PRODUCT_NAMES[key] || key.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
-}
-
-function formatCurrency(val) {
-  if (typeof val === "number") return `$${val.toFixed(2)}`;
-  return String(val);
+function formatAmountMinor(amount_minor, exponent, currency) {
+  if (amount_minor == null) return null;
+  const amount = amount_minor / Math.pow(10, exponent ?? 2);
+  try {
+    return new Intl.NumberFormat("en-US", { style: "currency", currency: currency || "USD", minimumFractionDigits: 2 }).format(amount);
+  } catch(e) { return `$${amount.toFixed(2)}`; }
 }
 
 function renderBreakdown(data) {
   const sec = document.getElementById("section-breakdown");
   const rowsEl = document.getElementById("bd-rows");
 
-  // Try breakdown data from candidate endpoints (attached as _breakdown)
-  const breakdown = data._breakdown || null;
-  if (!breakdown) { sec.style.display = "none"; return; }
+  // seven_day_breakdown.rows: [{key, display_name, percent}]
+  const bd = data.seven_day_breakdown;
+  if (!bd?.rows?.length) { sec.style.display = "none"; return; }
 
-  const entries = Array.isArray(breakdown)
-    ? breakdown
-    : Object.entries(breakdown).map(([key, val]) =>
-        typeof val === "object" ? { key, ...val } : { key, value: val }
-      );
+  // Show rows with percent > 0, sorted descending
+  const rows = bd.rows.filter(r => r.percent > 0).sort((a, b) => b.percent - a.percent);
+  if (!rows.length) { sec.style.display = "none"; return; }
 
-  if (entries.length === 0) { sec.style.display = "none"; return; }
+  // Use a neutral accent color (not capacity-based) for the mini bars
+  const barColor = getColor(data.seven_day?.utilization);
 
   rowsEl.innerHTML = "";
-  for (const entry of entries) {
-    const name = formatProductName(entry.key || entry.product || entry.name || "");
-    const pct  = entry.utilization ?? entry.percentage ?? entry.pct ?? null;
-    const val  = pct != null ? `${Math.round(pct)}%` : (entry.value != null ? String(entry.value) : "");
-    if (!name || !val) continue;
-
-    const row = document.createElement("div");
-    row.className = "breakdown-row";
-    row.innerHTML = `<span class="breakdown-name">${name}</span><span class="breakdown-val" style="color:${getColor(pct)}">${val}</span>`;
-    rowsEl.appendChild(row);
+  for (const row of rows) {
+    const div = document.createElement("div");
+    div.className = "breakdown-row";
+    div.innerHTML =
+      `<div class="bd-row-top">` +
+        `<span class="breakdown-name">${row.display_name}</span>` +
+        `<span class="breakdown-val" style="color:${barColor}">${row.percent}%</span>` +
+      `</div>` +
+      `<div class="bd-mini-track">` +
+        `<div class="bd-mini-fill" style="width:${row.percent}%;background:${barColor}"></div>` +
+      `</div>`;
+    rowsEl.appendChild(div);
   }
-  sec.style.display = rowsEl.children.length ? "block" : "none";
+  sec.style.display = "block";
 }
 
 function renderCredits(data) {
   const sec = document.getElementById("section-credits");
-  // Show dollar info from the five_hour window if non-null
-  const used  = data.five_hour?.used_dollars;
-  const limit = data.five_hour?.limit_dollars;
-  const rem   = data.five_hour?.remaining_dollars;
 
-  if (used == null && limit == null) { sec.style.display = "none"; return; }
+  // spend.used: {amount_minor, currency, exponent}
+  const spend = data.spend;
+  const eu    = data.extra_usage;
 
-  const parts = [];
-  if (used  != null) parts.push(`Used: ${formatCurrency(used)}`);
-  if (limit != null) parts.push(`Limit: ${formatCurrency(limit)}`);
-  if (rem   != null) parts.push(`Left: ${formatCurrency(rem)}`);
+  const usedMinor = spend?.used?.amount_minor ?? eu?.used_credits ?? null;
+  if (!usedMinor) { sec.style.display = "none"; return; }
 
-  document.getElementById("cred-label").textContent = parts.join("  ·  ");
-  document.getElementById("cred-val").textContent = "";
+  const exponent = spend?.used?.exponent ?? eu?.decimal_places ?? 2;
+  const currency = spend?.used?.currency ?? eu?.currency ?? "USD";
+  const formatted = formatAmountMinor(usedMinor, exponent, currency);
+  if (!formatted) { sec.style.display = "none"; return; }
+
+  const isEnabled = spend?.enabled ?? eu?.is_enabled ?? false;
+  document.getElementById("cred-label").textContent = isEnabled ? T.extraCred : T.creditsUsed;
+  document.getElementById("cred-val").textContent = formatted;
+  document.getElementById("cred-val").style.color = isEnabled ? "#dc2626" : "var(--muted)";
   sec.style.display = "block";
 }
 

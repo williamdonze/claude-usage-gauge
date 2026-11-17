@@ -96,17 +96,19 @@
       letter-spacing: 0.04em;
       margin-bottom: 8px;
     }
-    .breakdown-row {
+    .breakdown-row { padding: 5px 0; border-bottom: 1px solid var(--border); }
+    .breakdown-row:last-child { border-bottom: none; }
+    .bd-row-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 5px 0;
-      border-bottom: 1px solid var(--border);
+      margin-bottom: 4px;
       font-size: 12px;
     }
-    .breakdown-row:last-child { border-bottom: none; }
     .breakdown-name { color: var(--text); }
-    .breakdown-val  { font-weight: 700; color: var(--muted); }
+    .breakdown-val  { font-weight: 700; }
+    .bd-mini-track  { height: 3px; background: var(--subtle); border-radius: 999px; overflow: hidden; }
+    .bd-mini-fill   { height: 100%; border-radius: 999px; transition: width 0.7s cubic-bezier(0.16,1,0.3,1); }
 
     /* ── Extra credits ── */
     #section-credits { display: none; }
@@ -116,8 +118,8 @@
       align-items: center;
       font-size: 12px;
     }
-    .credits-label { color: var(--muted); }
-    .credits-cost  { font-weight: 800; color: #dc2626; font-size: 14px; }
+    .credits-label { color: var(--muted); flex: 1; }
+    .credits-cost  { font-weight: 800; font-size: 15px; }
 
     button {
       width: 100%;
