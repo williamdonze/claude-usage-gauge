@@ -94,30 +94,30 @@
       color: var(--muted);
       text-transform: uppercase;
       letter-spacing: 0.04em;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
-    .breakdown-row {
+    .breakdown-row { padding: 7px 0; border-bottom: 1px solid var(--border); }
+    .breakdown-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .bd-row-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 5px 0;
-      border-bottom: 1px solid var(--border);
-      font-size: 12px;
+      margin-bottom: 5px;
     }
-    .breakdown-row:last-child { border-bottom: none; }
-    .breakdown-name { color: var(--text); }
-    .breakdown-val  { font-weight: 700; color: var(--muted); }
+    .bd-left  { display: flex; align-items: center; gap: 7px; }
+    .bd-dot   { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .breakdown-name { font-size: 12px; color: var(--text); font-weight: 500; }
+    .breakdown-val  { font-size: 12px; font-weight: 800; }
+    .bd-mini-track  { height: 4px; background: var(--subtle); border-radius: 999px; overflow: hidden; }
+    .bd-mini-fill   { height: 100%; border-radius: 999px; transition: width 0.9s cubic-bezier(0.16,1,0.3,1); }
 
     /* ── Extra credits ── */
     #section-credits { display: none; }
-    .credits-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 12px;
-    }
-    .credits-label { color: var(--muted); }
-    .credits-cost  { font-weight: 800; color: #dc2626; font-size: 14px; }
+    .credits-inner  { display: flex; justify-content: space-between; align-items: flex-start; }
+    .credits-left   { display: flex; flex-direction: column; gap: 2px; }
+    .credits-label  { font-size: 11px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
+    .credits-sub    { font-size: 10px; color: var(--muted); opacity: 0.7; }
+    .credits-cost   { font-weight: 800; font-size: 18px; letter-spacing: -0.02em; }
 
     button {
       width: 100%;
@@ -153,7 +153,7 @@
         <circle id="hdr-arc-track" cx="20" cy="20" r="15" fill="none"
           stroke="rgba(120,120,120,0.22)" stroke-width="6" stroke-linecap="butt"/>
         <circle id="hdr-arc-fill" cx="20" cy="20" r="15" fill="none"
-          stroke="#d77757" stroke-width="6" stroke-linecap="round"
+          stroke="transparent" stroke-width="6" stroke-linecap="round"
           stroke-dasharray="94.25" stroke-dashoffset="94.25"
           transform="rotate(-90 20 20)"/>
       </svg>
@@ -194,8 +194,11 @@
 
     <!-- Extra credits cost (shown if API returns it) -->
     <div class="card" id="section-credits">
-      <div class="credits-row">
-        <span class="credits-label" id="cred-label"></span>
+      <div class="credits-inner">
+        <div class="credits-left">
+          <span class="credits-label" id="cred-label"></span>
+          <span class="credits-sub" id="cred-sub"></span>
+        </div>
         <span class="credits-cost" id="cred-val"></span>
       </div>
     </div>

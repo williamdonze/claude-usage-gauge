@@ -13,6 +13,7 @@ const TRANSLATIONS = {
     breakdown:   "Répartition 7 jours",
     extraCred:   "Crédits extra actifs",
     creditsUsed: "Crédits utilisés",
+    thisMonth:   "ce mois-ci",
   },
   en: {
     subtitle:    "Real-time data",
@@ -26,6 +27,7 @@ const TRANSLATIONS = {
     breakdown:   "7-day breakdown",
     extraCred:   "Extra credits active",
     creditsUsed: "Credits used",
+    thisMonth:   "this month",
   },
   es: {
     subtitle:    "Datos en tiempo real",
@@ -39,7 +41,7 @@ const TRANSLATIONS = {
     breakdown:   "Desglose 7 días",
     extraCred:   "Créditos extra activos",
     creditsUsed: "Créditos usados",
-    extraCred:   "Créditos adicionales",
+    thisMonth:   "este mes",
   },
   de: {
     subtitle:    "Echtzeit-Daten",
@@ -53,7 +55,7 @@ const TRANSLATIONS = {
     breakdown:   "7-Tage-Aufschlüsselung",
     extraCred:   "Extra-Credits aktiv",
     creditsUsed: "Verbrauchte Credits",
-    extraCred:   "Zusätzliche Credits",
+    thisMonth:   "diesen Monat",
   },
   pt: {
     subtitle:    "Dados em tempo real",
@@ -67,7 +69,7 @@ const TRANSLATIONS = {
     breakdown:   "Divisão 7 dias",
     extraCred:   "Créditos extras ativos",
     creditsUsed: "Créditos usados",
-    extraCred:   "Créditos extras",
+    thisMonth:   "este mês",
   },
   ja: {
     subtitle:    "リアルタイムデータ",
@@ -81,7 +83,7 @@ const TRANSLATIONS = {
     breakdown:   "7日間の内訳",
     extraCred:   "追加クレジット有効",
     creditsUsed: "使用済みクレジット",
-    extraCred:   "追加クレジット",
+    thisMonth:   "今月",
   },
   zh: {
     subtitle:    "实时数据",
@@ -95,7 +97,7 @@ const TRANSLATIONS = {
     breakdown:   "7天细分",
     extraCred:   "额外积分激活",
     creditsUsed: "已用积分",
-    extraCred:   "额外积分",
+    thisMonth:   "本月",
   },
   ko: {
     subtitle:    "실시간 데이터",
@@ -109,7 +111,7 @@ const TRANSLATIONS = {
     breakdown:   "7일 세부 분석",
     extraCred:   "추가 크레딧 활성",
     creditsUsed: "사용된 크레딧",
-    extraCred:   "추가 크레딧",
+    thisMonth:   "이번 달",
   },
 };
 
@@ -131,7 +133,6 @@ function applyStaticText() {
   document.getElementById("p-nodata").textContent     = T.nodata;
   document.getElementById("btn-refresh").textContent  = T.refresh;
   document.getElementById("bd-title").textContent     = T.breakdown;
-  document.getElementById("cred-label").textContent   = T.extraCred;
 }
 
 function formatResetIn(isoDate) {
@@ -161,42 +162,55 @@ function formatAmountMinor(amount_minor, exponent, currency) {
   } catch(e) { return `$${amount.toFixed(2)}`; }
 }
 
+// Colors per product key for breakdown bars
+const PRODUCT_COLORS = {
+  claude_code: "#7c3aed",
+  cowork:      "#3b82f6",
+  chat:        "#d77757",
+  api:         "#0ea5e9",
+  other:       "#6b7280",
+};
+function productColor(key) { return PRODUCT_COLORS[key] || "#d77757"; }
+
 function renderBreakdown(data) {
   const sec = document.getElementById("section-breakdown");
   const rowsEl = document.getElementById("bd-rows");
 
-  // seven_day_breakdown.rows: [{key, display_name, percent}]
   const bd = data.seven_day_breakdown;
   if (!bd?.rows?.length) { sec.style.display = "none"; return; }
 
-  // Show rows with percent > 0, sorted descending
   const rows = bd.rows.filter(r => r.percent > 0).sort((a, b) => b.percent - a.percent);
   if (!rows.length) { sec.style.display = "none"; return; }
 
-  // Use a neutral accent color (not capacity-based) for the mini bars
-  const barColor = getColor(data.seven_day?.utilization);
-
   rowsEl.innerHTML = "";
   for (const row of rows) {
+    const color = productColor(row.key);
     const div = document.createElement("div");
     div.className = "breakdown-row";
     div.innerHTML =
       `<div class="bd-row-top">` +
-        `<span class="breakdown-name">${row.display_name}</span>` +
-        `<span class="breakdown-val" style="color:${barColor}">${row.percent}%</span>` +
+        `<div class="bd-left">` +
+          `<span class="bd-dot" style="background:${color}"></span>` +
+          `<span class="breakdown-name">${row.display_name}</span>` +
+        `</div>` +
+        `<span class="breakdown-val" style="color:${color}">${row.percent}%</span>` +
       `</div>` +
       `<div class="bd-mini-track">` +
-        `<div class="bd-mini-fill" style="width:${row.percent}%;background:${barColor}"></div>` +
+        `<div class="bd-mini-fill" style="width:0%;background:${color}" data-pct="${row.percent}"></div>` +
       `</div>`;
     rowsEl.appendChild(div);
   }
+  // Animate bars after paint
+  requestAnimationFrame(() => {
+    rowsEl.querySelectorAll(".bd-mini-fill").forEach(el => {
+      el.style.width = el.dataset.pct + "%";
+    });
+  });
   sec.style.display = "block";
 }
 
 function renderCredits(data) {
   const sec = document.getElementById("section-credits");
-
-  // spend.used: {amount_minor, currency, exponent}
   const spend = data.spend;
   const eu    = data.extra_usage;
 
@@ -208,19 +222,17 @@ function renderCredits(data) {
   const formatted = formatAmountMinor(usedMinor, exponent, currency);
   if (!formatted) { sec.style.display = "none"; return; }
 
-  const isEnabled = spend?.enabled ?? eu?.is_enabled ?? false;
+  const isEnabled = spend?.enabled === true || eu?.is_enabled === true;
   document.getElementById("cred-label").textContent = isEnabled ? T.extraCred : T.creditsUsed;
+  document.getElementById("cred-sub").textContent = T.thisMonth;
   document.getElementById("cred-val").textContent = formatted;
-  document.getElementById("cred-val").style.color = isEnabled ? "#dc2626" : "var(--muted)";
+  document.getElementById("cred-val").style.color = isEnabled ? "#3b82f6" : "var(--muted)";
   sec.style.display = "block";
 }
 
 function render(data) {
   document.getElementById("loading").style.display = "none";
   document.getElementById("main").style.display = "block";
-
-  // Log full API payload to console so we can discover all available fields
-  if (data) console.log("[ClaudeUsage] full API payload:", JSON.stringify(data, null, 2));
 
   function fillRow(prefix, utilization, resetsAt) {
     const pct = utilization ?? 0;
@@ -238,12 +250,17 @@ function render(data) {
     fillRow("7d", data.seven_day?.utilization, data.seven_day?.resets_at);
     document.getElementById("p-nodata").style.display = "none";
 
-    // Live arc gauge in header — shows 5h session utilization
+    // Live arc gauge in header — set color instantly, then animate fill
     const pct5h = data.five_hour?.utilization ?? 0;
     const arcFill = document.getElementById("hdr-arc-fill");
     if (arcFill) {
+      arcFill.style.transition = "none";
       arcFill.style.stroke = getColor(pct5h);
-      arcFill.style.strokeDashoffset = ARC_CIRC * (1 - Math.min(100, pct5h) / 100);
+      arcFill.style.strokeDashoffset = ARC_CIRC;
+      requestAnimationFrame(() => {
+        arcFill.style.transition = "stroke-dashoffset 0.9s cubic-bezier(0.16,1,0.3,1)";
+        arcFill.style.strokeDashoffset = ARC_CIRC * (1 - Math.min(100, pct5h) / 100);
+      });
     }
 
     renderBreakdown(data);

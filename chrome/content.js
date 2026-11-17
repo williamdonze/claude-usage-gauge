@@ -92,6 +92,11 @@
     track.appendChild(mk("div", "cug-5h-fill", "cug-fill"));
     el.appendChild(track);
 
+    // Credit overflow bar (hidden by default, blue, shown when credits in use)
+    const creditBar = mk("div", "cug-credit-bar", "cug-credit-bar");
+    creditBar.appendChild(mk("div", "cug-credit-fill", "cug-credit-fill"));
+    el.appendChild(creditBar);
+
     // Info row
     const row = mk("div", null, "cug-row");
 
