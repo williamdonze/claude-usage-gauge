@@ -241,8 +241,13 @@ function render(data) {
     document.getElementById(`p-${prefix}-val`).style.color = color;
     document.getElementById(`p-${prefix}-reset`).textContent = formatResetIn(resetsAt);
     const fill = document.getElementById(`p-${prefix}-fill`);
-    fill.style.width = `${Math.min(100, pct)}%`;
+    fill.style.transition = "none";
+    fill.style.width = "0%";
     fill.style.background = color;
+    requestAnimationFrame(() => {
+      fill.style.transition = "width 0.9s cubic-bezier(0.16,1,0.3,1), background 0.4s";
+      fill.style.width = `${Math.min(100, pct)}%`;
+    });
   }
 
   if (data) {

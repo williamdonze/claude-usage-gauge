@@ -241,8 +241,13 @@ function render(data) {
     document.getElementById(`p-${prefix}-val`).style.color = color;
     document.getElementById(`p-${prefix}-reset`).textContent = formatResetIn(resetsAt);
     const fill = document.getElementById(`p-${prefix}-fill`);
-    fill.style.width = `${Math.min(100, pct)}%`;
+    fill.style.transition = "none";
+    fill.style.width = "0%";
     fill.style.background = color;
+    requestAnimationFrame(() => {
+      fill.style.transition = "width 0.9s cubic-bezier(0.16,1,0.3,1), background 0.4s";
+      fill.style.width = `${Math.min(100, pct)}%`;
+    });
   }
 
   if (data) {
@@ -277,14 +282,14 @@ async function load() {
   document.getElementById("main").style.display = "none";
 
   // Try cached data first
-  const cached = await new Promise((r) => browser.runtime.sendMessage({ type: "GET_DATA" }, r));
+  const cached = await new Promise((r) => chrome.runtime.sendMessage({ type: "GET_DATA" }, r));
   if (cached?.data) { render(cached.data); return; }
 
   // No cache: ask content script in open tab
-  const tabs = await new Promise((r) => browser.tabs.query({ url: "*://claude.ai/*" }, r));
+  const tabs = await new Promise((r) => chrome.tabs.query({ url: "*://claude.ai/*" }, r));
   if (tabs.length > 0) {
     const data = await new Promise((r) =>
-      browser.tabs.sendMessage(tabs[0].id, { type: "FETCH_AND_REPLY" }, (d) => r(d || null))
+      chrome.tabs.sendMessage(tabs[0].id, { type: "FETCH_AND_REPLY" }, (d) => r(d || null))
     );
     if (data) { render(data); return; }
   }
@@ -296,15 +301,15 @@ async function refresh() {
   document.getElementById("loading").style.display = "block";
   document.getElementById("main").style.display = "none";
 
-  const tabs = await new Promise((r) => browser.tabs.query({ url: "*://claude.ai/*" }, r));
+  const tabs = await new Promise((r) => chrome.tabs.query({ url: "*://claude.ai/*" }, r));
   if (tabs.length > 0) {
     const data = await new Promise((r) =>
-      browser.tabs.sendMessage(tabs[0].id, { type: "FETCH_AND_REPLY" }, (d) => r(d || null))
+      chrome.tabs.sendMessage(tabs[0].id, { type: "FETCH_AND_REPLY" }, (d) => r(d || null))
     );
     if (data) { render(data); return; }
   }
 
-  const cached = await new Promise((r) => browser.runtime.sendMessage({ type: "GET_DATA" }, r));
+  const cached = await new Promise((r) => chrome.runtime.sendMessage({ type: "GET_DATA" }, r));
   render(cached?.data || null);
 }
 

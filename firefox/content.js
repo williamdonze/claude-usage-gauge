@@ -68,6 +68,11 @@
     return "↻ " + T.resetIn(d, h, m);
   }
 
+  function formatMoney(amountMinor, decimalPlaces) {
+    const val = amountMinor / Math.pow(10, decimalPlaces ?? 2);
+    return "$" + val.toFixed(2);
+  }
+
   function color(pct) {
     if (pct == null) return "#9ca3af";
     if (pct < 50) return "#16a34a";
@@ -92,18 +97,15 @@
     track.appendChild(mk("div", "cug-5h-fill", "cug-fill"));
     el.appendChild(track);
 
-    // Credit overflow bar (hidden by default, blue, shown when credits in use)
-    const creditBar = mk("div", "cug-credit-bar", "cug-credit-bar");
-    creditBar.appendChild(mk("div", "cug-credit-fill", "cug-credit-fill"));
-    el.appendChild(creditBar);
-
     // Info row
     const row = mk("div", null, "cug-row");
 
     // Left: ● Session 5h  72%  ↻ 3h41
     const left = mk("div", null, "cug-left");
     left.appendChild(mk("span", "cug-5h-dot", "cug-dot-ind"));
-    left.appendChild(txt("span", "cug-label", T.session));
+    const lbl5h = txt("span", "cug-label", T.session);
+    lbl5h.id = "cug-5h-lbl";
+    left.appendChild(lbl5h);
     left.appendChild(mk("span", "cug-5h-pct", "cug-pct"));
     left.appendChild(mk("span", "cug-5h-rst", "cug-rst"));
 
@@ -137,55 +139,53 @@
     const creditLimit   = d.extra_usage?.monthly_limit ?? d.spend?.limit?.amount_minor ?? null;
     const inCreditMode  = creditEnabled && h5pct >= 100;
 
-    const dot   = document.getElementById("cug-5h-dot");
-    const p5    = document.getElementById("cug-5h-pct");
-    const fill  = document.getElementById("cug-5h-fill");
-    const rst5  = document.getElementById("cug-5h-rst");
-    const p7    = document.getElementById("cug-7d-pct");
-    const rst7  = document.getElementById("cug-7d-rst");
-    const cBar  = document.getElementById("cug-credit-bar");
-    const cFill = document.getElementById("cug-credit-fill");
+    const dot  = document.getElementById("cug-5h-dot");
+    const lbl5 = document.getElementById("cug-5h-lbl");
+    const p5   = document.getElementById("cug-5h-pct");
+    const fill = document.getElementById("cug-5h-fill");
+    const rst5 = document.getElementById("cug-5h-rst");
+    const p7   = document.getElementById("cug-7d-pct");
+    const rst7 = document.getElementById("cug-7d-rst");
 
     if (dot) {
       dot.style.background = (creditEnabled && !inCreditMode) ? "#3b82f6" : c5;
     }
-    if (p5) {
-      if (inCreditMode && creditUsed > 0) {
-        const amt = creditUsed / Math.pow(10, creditDecimal);
-        p5.textContent = `$${amt.toFixed(2)}`;
-        p5.classList.add("cug-5h-pct--credit");
-      } else {
-        p5.textContent = `${Math.round(h5pct)}%`;
-        p5.style.color = c5;
-        p5.classList.remove("cug-5h-pct--credit");
-      }
-    }
-    if (fill) {
-      if (inCreditMode) {
-        fill.style.width = "100%";
+
+    if (inCreditMode) {
+      // Single blue bar showing % of credits remaining
+      const remainingMinor = creditLimit ? Math.max(0, creditLimit - creditUsed) : 0;
+      const remainPct = creditLimit ? Math.round((remainingMinor / creditLimit) * 100) : 0;
+
+      if (fill) {
+        fill.style.width = `${remainPct}%`;
         fill.classList.add("cug-fill--credit");
         fill.classList.remove("cug-fill--critical");
-      } else {
+      }
+
+      // Replace "Session 5h" label with "$X.XX (Y%) used · $Z.ZZ left"
+      if (lbl5 && p5 && rst5) {
+        const usedAmt  = formatMoney(creditUsed, creditDecimal);
+        const usedPct  = creditLimit ? Math.round((creditUsed / creditLimit) * 100) : 0;
+        const leftAmt  = creditLimit ? formatMoney(remainingMinor, creditDecimal) : "—";
+        lbl5.style.display = "none";
+        rst5.style.display = "none";
+        p5.textContent = `${usedAmt} (${usedPct}%) used · ${leftAmt} left`;
+        p5.classList.add("cug-5h-pct--credit");
+        p5.style.color = "";
+      }
+    } else {
+      if (fill) {
         fill.style.width = `${Math.min(100, h5pct)}%`;
         fill.style.background = c5;
         fill.classList.remove("cug-fill--credit");
         fill.classList.toggle("cug-fill--critical", h5pct >= 90);
       }
-    }
-    if (rst5) rst5.textContent = formatReset(d.five_hour?.resets_at);
-
-    // Credit bar: show remaining credits ratio below main bar
-    if (cBar && cFill) {
-      if (inCreditMode && creditLimit && creditUsed < creditLimit) {
-        const remaining = creditLimit - creditUsed;
-        const pct = Math.round((remaining / creditLimit) * 100);
-        cFill.style.width = `${pct}%`;
-        cBar.classList.add("visible");
-      } else if (inCreditMode && creditUsed > 0) {
-        cFill.style.width = "30%";
-        cBar.classList.add("visible");
-      } else {
-        cBar.classList.remove("visible");
+      if (lbl5) lbl5.style.display = "";
+      if (rst5) rst5.style.display = "";
+      if (p5) {
+        p5.textContent = `${Math.round(h5pct)}%`;
+        p5.style.color = c5;
+        p5.classList.remove("cug-5h-pct--credit");
       }
     }
 
@@ -199,7 +199,7 @@
     if (!d) { log("fetchUsage returned null"); return; }
     log("5h:", d.five_hour?.utilization, "7d:", d.seven_day?.utilization);
     applyData(d);
-    try { browser.runtime.sendMessage({ type: "STORE_DATA", data: d }); } catch(e) {}
+    try { chrome.runtime.sendMessage({ type: "STORE_DATA", data: d }); } catch(e) {}
     return d;
   }
 
@@ -207,7 +207,7 @@
   // Using src= instead of inline textContent bypasses page CSP (works in Firefox too).
   function injectStreamWatcher() {
     const s = document.createElement("script");
-    s.src = browser.runtime.getURL("injector.js");
+    s.src = chrome.runtime.getURL("injector.js");
     (document.head || document.documentElement).appendChild(s);
     s.onload = () => s.remove();
   }
@@ -301,7 +301,7 @@
     }, 500);
   }
 
-  browser.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+  chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     if (msg.type === "RENDER_NOW" && msg.data) { applyData(msg.data); return; }
     if (msg.type === "FETCH_AND_REPLY") {
       loadAndRender().then(d => sendResponse(d || null));
