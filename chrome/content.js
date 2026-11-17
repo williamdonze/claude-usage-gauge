@@ -147,7 +147,8 @@
   async function loadAndRender() {
     if (!gaugeEl) return;
     const d = await fetchUsage();
-    if (!d) return;
+    if (!d) { log("fetchUsage returned null"); return; }
+    log("data:", JSON.stringify(Object.keys(d)), "5h:", d.five_hour?.utilization, "7d:", d.seven_day?.utilization);
     applyData(d);
     try { chrome.runtime.sendMessage({ type: "STORE_DATA", data: d }); } catch(e) {}
     return d;
