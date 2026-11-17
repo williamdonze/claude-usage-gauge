@@ -38,16 +38,7 @@ async function updateIcon(data) {
     ctx.stroke();
   }
 
-  // Percentage text in center
-  if (pct > 0) {
-    const label = `${pct}%`;
-    const fontSize = label.length > 3 ? 24 : 28;
-    ctx.font = `bold ${fontSize}px -apple-system, BlinkMacSystemFont, sans-serif`;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillStyle = arcColor(pct);
-    ctx.fillText(label, cx, cy + 1);
-  }
+  // No text in center — ring only
 
   const imageData = ctx.getImageData(0, 0, size, size);
   browser.browserAction.setIcon({ imageData: { 128: imageData } });

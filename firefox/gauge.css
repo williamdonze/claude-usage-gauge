@@ -1,78 +1,21 @@
-/* gauge.css v14 */
+/* gauge.css v15 */
 
 #claude-usage-gauge {
   pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
   width: calc(100% - 16px);
   margin: 4px 8px 2px;
-  padding: 5px 4px 3px;
+  padding: 2px 2px;
   box-sizing: border-box;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-/* ── Two columns ── */
-.cug-cols {
-  display: flex;
-  align-items: stretch;
-  gap: 0;
-}
-
-/* Left col (5h): takes all remaining space */
-.cug-col {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-/* Right col (7d): compact, text-only, fixed width */
-.cug-col--text {
-  flex: 0 0 auto;
-  min-width: 56px;
-}
-
-.cug-sep {
-  width: 1px;
-  background: rgba(0, 0, 0, 0.10);
-  margin: 0 10px;
-  flex-shrink: 0;
-}
-
-@media (prefers-color-scheme: dark) {
-  .cug-sep { background: rgba(255, 255, 255, 0.10); }
-}
-
-/* ── Top row: label + pct ── */
-.cug-col-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-}
-
-.cug-label {
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: rgba(0, 0, 0, 0.38);
-  line-height: 1;
-}
-
-@media (prefers-color-scheme: dark) {
-  .cug-label { color: rgba(255, 255, 255, 0.38); }
-}
-
-.cug-pct {
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1;
-  transition: color 0.4s;
-}
-
-/* ── Progress bar (5h only) ── */
+/* ── Full-width bar ── */
 .cug-track {
-  height: 3px;
+  width: 100%;
+  height: 4px;
   background: rgba(0, 0, 0, 0.08);
   border-radius: 999px;
   overflow: hidden;
@@ -89,16 +32,78 @@
   transition: width 0.9s cubic-bezier(0.16, 1, 0.3, 1), background 0.4s;
 }
 
-/* ── Reset time ── */
+/* ── Info row ── */
+.cug-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Left block: dot + label + pct + reset */
+.cug-left {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+/* Right block: 7d text */
+.cug-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* Colored dot indicator */
+.cug-dot-ind {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background 0.4s;
+}
+
+.cug-label {
+  font-size: 11px;
+  font-weight: 400;
+  color: rgba(0, 0, 0, 0.45);
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cug-label { color: rgba(255, 255, 255, 0.40); }
+}
+
+.cug-pct {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  transition: color 0.4s;
+  flex-shrink: 0;
+}
+
 .cug-rst {
-  font-size: 9px;
-  color: rgba(0, 0, 0, 0.30);
-  letter-spacing: 0.01em;
+  font-size: 10px;
+  color: rgba(0, 0, 0, 0.32);
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cug-rst { color: rgba(255, 255, 255, 0.28); }
+}
+
+.cug-sep-text {
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.25);
   line-height: 1;
 }
 
 @media (prefers-color-scheme: dark) {
-  .cug-rst { color: rgba(255, 255, 255, 0.30); }
+  .cug-sep-text { color: rgba(255, 255, 255, 0.20); }
 }
 
 /* ── Critical pulse (>= 90%) ── */

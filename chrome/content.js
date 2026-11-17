@@ -85,32 +85,33 @@
   function txt(tag, cls, text) { const e = mk(tag, null, cls); e.textContent = text; return e; }
 
   function buildGauge() {
-    const el   = mk("div", "claude-usage-gauge");
-    const cols = mk("div", null, "cug-cols");
+    const el = mk("div", "claude-usage-gauge");
 
-    // Left: 5h with bar
-    const left = mk("div", null, "cug-col");
-    const ltop = mk("div", null, "cug-col-top");
-    ltop.appendChild(txt("span", "cug-label", T.session));
-    ltop.appendChild(mk("span", "cug-5h-pct", "cug-pct"));
+    // Full-width bar
     const track = mk("div", null, "cug-track");
     track.appendChild(mk("div", "cug-5h-fill", "cug-fill"));
-    left.appendChild(ltop);
-    left.appendChild(track);
+    el.appendChild(track);
+
+    // Info row
+    const row = mk("div", null, "cug-row");
+
+    // Left: ● Session 5h  72%  ↻ 3h41
+    const left = mk("div", null, "cug-left");
+    left.appendChild(mk("span", "cug-5h-dot", "cug-dot-ind"));
+    left.appendChild(txt("span", "cug-label", `${T.session} :`));
+    left.appendChild(mk("span", "cug-5h-pct", "cug-pct"));
     left.appendChild(mk("span", "cug-5h-rst", "cug-rst"));
 
-    // Right: 7d text only (no bar)
-    const right = mk("div", null, "cug-col cug-col--text");
-    const rtop  = mk("div", null, "cug-col-top");
-    rtop.appendChild(txt("span", "cug-label", T.week));
-    rtop.appendChild(mk("span", "cug-7d-pct", "cug-pct"));
-    right.appendChild(rtop);
+    // Right: 7 jours : 13%  ↻ 3d 2h
+    const right = mk("div", null, "cug-right");
+    right.appendChild(txt("span", "cug-label", T.week));
+    right.appendChild(txt("span", "cug-sep-text", " : "));
+    right.appendChild(mk("span", "cug-7d-pct", "cug-pct"));
     right.appendChild(mk("span", "cug-7d-rst", "cug-rst"));
 
-    cols.appendChild(left);
-    cols.appendChild(mk("div", null, "cug-sep"));
-    cols.appendChild(right);
-    el.appendChild(cols);
+    row.appendChild(left);
+    row.appendChild(right);
+    el.appendChild(row);
     return el;
   }
 
@@ -124,12 +125,14 @@
     const d7pct = d.seven_day?.utilization ?? 0;
     const c5 = color(h5pct), c7 = color(d7pct);
 
+    const dot   = document.getElementById("cug-5h-dot");
     const p5    = document.getElementById("cug-5h-pct");
     const fill  = document.getElementById("cug-5h-fill");
     const rst5  = document.getElementById("cug-5h-rst");
     const p7    = document.getElementById("cug-7d-pct");
     const rst7  = document.getElementById("cug-7d-rst");
 
+    if (dot)  dot.style.background = c5;
     if (p5)   { p5.textContent = `${Math.round(h5pct)}%`; p5.style.color = c5; }
     if (fill) {
       fill.style.width = `${Math.min(100, h5pct)}%`;
