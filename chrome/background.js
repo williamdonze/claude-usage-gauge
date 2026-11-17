@@ -84,6 +84,12 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     chrome.storage.local.set({ usageData: msg.data }, async () => {
       await updateIcon(msg.data);
       await appendHistory(msg.data);
+      // Broadcast to all open claude.ai tabs so the gauge stays in sync
+      chrome.tabs.query({ url: "*://claude.ai/*" }, (tabs) => {
+        for (const t of tabs) {
+          chrome.tabs.sendMessage(t.id, { type: "RENDER_NOW", data: msg.data }).catch(() => {});
+        }
+      });
       sendResponse({ ok: true });
     });
     return true;

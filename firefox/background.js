@@ -1,4 +1,4 @@
-// background.js — Firefox MV2
+// background.js — Chrome MV3
 
 const MAX_HISTORY = 24;
 
@@ -84,6 +84,12 @@ browser.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     browser.storage.local.set({ usageData: msg.data }, async () => {
       await updateIcon(msg.data);
       await appendHistory(msg.data);
+      // Broadcast to all open claude.ai tabs so the gauge stays in sync
+      browser.tabs.query({ url: "*://claude.ai/*" }, (tabs) => {
+        for (const t of tabs) {
+          browser.tabs.sendMessage(t.id, { type: "RENDER_NOW", data: msg.data }).catch(() => {});
+        }
+      });
       sendResponse({ ok: true });
     });
     return true;

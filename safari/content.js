@@ -153,30 +153,13 @@
     return d;
   }
 
-  // Inject a fetch interceptor into the main world so we can watch SSE streams.
-  // When a /completion stream finishes, we re-fetch usage immediately.
+  // Inject a fetch interceptor into the main world via a web-accessible script file.
+  // Using src= instead of inline textContent bypasses page CSP (works in Firefox too).
   function injectStreamWatcher() {
     const s = document.createElement("script");
-    s.textContent = `(function(){
-      const _fetch = window.fetch;
-      window.fetch = async function(...args){
-        const url = (typeof args[0]==="string" ? args[0] : (args[0]?.url||""));
-        const isStream = /\\/append_message|\\/completion|\\/retry_completion/.test(url);
-        const res = await _fetch.apply(this, args);
-        if (isStream && res.body) {
-          const [b1, b2] = res.body.tee();
-          (async()=>{
-            const reader = b2.getReader();
-            try { while(!(await reader.read()).done){} } catch(e){}
-            window.dispatchEvent(new CustomEvent("cug-stream-done"));
-          })();
-          return new Response(b1, {status:res.status, statusText:res.statusText, headers:res.headers});
-        }
-        return res;
-      };
-    })();`;
+    s.src = browser.runtime.getURL("injector.js");
     (document.head || document.documentElement).appendChild(s);
-    s.remove();
+    s.onload = () => s.remove();
   }
 
   function isExcludedPage() {
