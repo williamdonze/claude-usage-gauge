@@ -10,12 +10,15 @@ function arcColor(pct, settings) {
   return "#dc2626";
 }
 
-async function updateIcon(data) {
+async function updateIcon(data, cugSettings) {
   const size = 128;
   const canvas = new OffscreenCanvas(size, size);
   const ctx = canvas.getContext("2d");
 
-  const { cugSettings } = await chrome.storage.local.get("cugSettings");
+  if (!cugSettings) {
+    const r = await chrome.storage.local.get("cugSettings");
+    cugSettings = r.cugSettings;
+  }
   const pct = data ? Math.round(data.five_hour?.utilization ?? 0) : 0;
   const cx = size / 2, cy = size / 2;
   const r = 55, lw = 22;   // large ring, nearly fills the icon
@@ -107,7 +110,11 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     return true;
   }
   if (msg.type === "REFRESH_ICON") {
-    chrome.storage.local.get("usageData", ({ usageData }) => updateIcon(usageData || null));
+    chrome.storage.local.get(["usageData", "cugSettings"], (r) => {
+      // Use settings from message if provided (avoids storage write race)
+      if (msg.settings) r.cugSettings = msg.settings;
+      updateIcon(r.usageData || null, r.cugSettings);
+    });
     return false;
   }
 });

@@ -339,10 +339,36 @@ function applySettingsUI() {
 
 let _lastData = null;
 
+// Lightweight color-only update — no width animation, no re-fetch
+function recolorAll() {
+  if (!_lastData) return;
+  const d = _lastData;
+  const pct5h = d.five_hour?.utilization ?? 0;
+  const pct7d = d.seven_day?.utilization ?? 0;
+  const c5 = getColor(pct5h);
+  const c7 = getColor(pct7d);
+
+  // Arc gauge in header
+  const arcFill = document.getElementById("hdr-arc-fill");
+  if (arcFill) arcFill.style.stroke = c5;
+
+  // 5h card
+  const v5 = document.getElementById("p-5h-val");
+  if (v5) v5.style.color = c5;
+  const f5 = document.getElementById("p-5h-fill");
+  if (f5) f5.style.background = c5;
+
+  // 7d card
+  const v7 = document.getElementById("p-7d-val");
+  if (v7) v7.style.color = c7;
+  const f7 = document.getElementById("p-7d-fill");
+  if (f7) f7.style.background = c7;
+}
+
 function saveSettings() {
   chrome.storage.local.set({ cugSettings });
-  chrome.runtime.sendMessage({ type: "REFRESH_ICON" }).catch(() => {});
-  if (_lastData) render(_lastData);
+  chrome.runtime.sendMessage({ type: "REFRESH_ICON", settings: cugSettings }).catch(() => {});
+  recolorAll();
 }
 
 function wireSettingsPanel() {
