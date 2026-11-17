@@ -237,7 +237,6 @@ function renderCredits(data) {
 function render(data) {
   _lastData = data;
   document.getElementById("loading").style.display = "none";
-  // Don't show main if settings panel is open
   if (!document.getElementById("settings-panel").classList.contains("open")) {
     document.getElementById("main").style.display = "block";
   }
@@ -340,12 +339,8 @@ function applySettingsUI() {
 
 let _lastData = null;
 
-async function saveSettings() {
-  await chrome.storage.local.set({ cugSettings });
-  const tabs = await new Promise((r) => chrome.tabs.query({ url: "*://claude.ai/*" }, r));
-  for (const t of tabs) {
-    chrome.tabs.sendMessage(t.id, { type: "SETTINGS_CHANGED", settings: cugSettings }).catch(() => {});
-  }
+function saveSettings() {
+  chrome.storage.local.set({ cugSettings });
   chrome.runtime.sendMessage({ type: "REFRESH_ICON" }).catch(() => {});
   if (_lastData) render(_lastData);
 }
@@ -358,8 +353,13 @@ function wireSettingsPanel() {
   btn.addEventListener("click", () => {
     const open = panel.classList.toggle("open");
     btn.classList.toggle("active", open);
-    if (main.style.display !== "none") main.dataset.wasVisible = "1";
-    main.style.display = open ? "none" : (main.dataset.wasVisible ? "block" : "none");
+    document.body.classList.toggle("settings-open", open);
+    if (open) {
+      main.dataset.wasVisible = main.style.display !== "none" ? "1" : "";
+      main.style.display = "none";
+    } else {
+      main.style.display = main.dataset.wasVisible === "1" ? "block" : "none";
+    }
   });
 
   const slO  = document.getElementById("sl-orange");

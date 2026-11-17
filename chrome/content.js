@@ -305,12 +305,15 @@
     }, 500);
   }
 
-  chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
-    if (msg.type === "SETTINGS_CHANGED" && msg.settings) {
-      cugSettings = { ...cugSettings, ...msg.settings };
+  // Storage listener — fires immediately in both Chrome and Firefox when popup saves settings
+  chrome.storage.onChanged.addListener((changes) => {
+    if (changes.cugSettings?.newValue) {
+      cugSettings = { ...cugSettings, ...changes.cugSettings.newValue };
       if (lastData) applyData(lastData);
-      return;
     }
+  });
+
+  chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     if (msg.type === "RENDER_NOW" && msg.data) { applyData(msg.data); return; }
     if (msg.type === "FETCH_AND_REPLY") {
       loadAndRender().then(d => sendResponse(d || null));
