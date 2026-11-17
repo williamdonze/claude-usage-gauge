@@ -101,3 +101,13 @@
   from { opacity: 0; transform: translateY(2px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+/* ── Critical pulse (>= 90%) ── */
+@keyframes cug-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.45; }
+}
+
+.cug-fill--critical {
+  animation: cug-pulse 1.4s ease-in-out infinite;
+}

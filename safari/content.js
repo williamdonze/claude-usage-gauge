@@ -1,4 +1,4 @@
-// content.js v10
+// content.js v11
 
 (function () {
   "use strict";
@@ -91,19 +91,17 @@
     top.appendChild(mk("span", `cug-${prefix}-pct`, "cug-pct"));
     const track = mk("div", null, "cug-track");
     track.appendChild(mk("div", `cug-${prefix}-fill`, "cug-fill"));
-    const rst = mk("span", `cug-${prefix}-rst`, "cug-rst");
     col.appendChild(top);
     col.appendChild(track);
-    col.appendChild(rst);
+    col.appendChild(mk("span", `cug-${prefix}-rst`, "cug-rst"));
     return col;
   }
 
   function buildGauge() {
     const el   = mk("div", "claude-usage-gauge");
     const cols = mk("div", null, "cug-cols");
-    const sep  = mk("div", null, "cug-sep");
     cols.appendChild(buildCol("5h", T.session));
-    cols.appendChild(sep);
+    cols.appendChild(mk("div", null, "cug-sep"));
     cols.appendChild(buildCol("7d", T.week));
     el.appendChild(cols);
     return el;
@@ -117,7 +115,11 @@
     const fillEl = document.getElementById(`cug-${prefix}-fill`);
     const rstEl  = document.getElementById(`cug-${prefix}-rst`);
     if (pctEl)  { pctEl.textContent = `${Math.round(pct)}%`; pctEl.style.color = c; }
-    if (fillEl) { fillEl.style.width = `${Math.min(100, pct)}%`; fillEl.style.background = c; }
+    if (fillEl) {
+      fillEl.style.width = `${Math.min(100, pct)}%`;
+      fillEl.style.background = c;
+      fillEl.classList.toggle("cug-fill--critical", pct >= 90);
+    }
     if (rstEl)  { rstEl.textContent = formatReset(iso); }
   }
 
@@ -146,14 +148,21 @@
   }
 
   function findComposer() {
-    const rounded = document.querySelector('[class*="rounded-composer"]');
-    if (rounded) return rounded;
+    const input = document.querySelector('[contenteditable="true"]')
+                || document.querySelector("textarea");
+    if (!input) return null;
 
-    const ta = document.querySelector("textarea")
-             || document.querySelector('[contenteditable="true"]');
-    if (!ta) return null;
+    // Walk up: target the fieldset (input box boundary in current UI)
+    let el = input;
+    for (let i = 0; i < 12; i++) {
+      if (!el.parentElement || el.parentElement.tagName === "BODY") break;
+      el = el.parentElement;
+      if (el.tagName === "FIELDSET") return el;
+      if (typeof el.className === "string" && el.className.includes("rounded-composer")) return el;
+    }
 
-    let el = ta;
+    // Fallback: first ancestor with send/model button
+    el = input;
     for (let i = 0; i < 12; i++) {
       const p = el.parentElement;
       if (!p || p.tagName === "BODY") break;
@@ -162,7 +171,7 @@
       if (hasSend || hasModel) return p;
       el = p;
     }
-    return ta.parentElement;
+    return input.parentElement;
   }
 
   function inject() {
