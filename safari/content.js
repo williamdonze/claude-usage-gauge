@@ -150,6 +150,33 @@
     if (!d) return;
     applyData(d);
     try { browser.runtime.sendMessage({ type: "STORE_DATA", data: d }); } catch(e) {}
+    return d;
+  }
+
+  // Inject a fetch interceptor into the main world so we can watch SSE streams.
+  // When a /completion stream finishes, we re-fetch usage immediately.
+  function injectStreamWatcher() {
+    const s = document.createElement("script");
+    s.textContent = `(function(){
+      const _fetch = window.fetch;
+      window.fetch = async function(...args){
+        const url = (typeof args[0]==="string" ? args[0] : (args[0]?.url||""));
+        const isStream = /\\/append_message|\\/completion|\\/retry_completion/.test(url);
+        const res = await _fetch.apply(this, args);
+        if (isStream && res.body) {
+          const [b1, b2] = res.body.tee();
+          (async()=>{
+            const reader = b2.getReader();
+            try { while(!(await reader.read()).done){} } catch(e){}
+            window.dispatchEvent(new CustomEvent("cug-stream-done"));
+          })();
+          return new Response(b1, {status:res.status, statusText:res.statusText, headers:res.headers});
+        }
+        return res;
+      };
+    })();`;
+    (document.head || document.documentElement).appendChild(s);
+    s.remove();
   }
 
   function isExcludedPage() {
@@ -241,14 +268,24 @@
     }, 500);
   }
 
-  browser.runtime.onMessage.addListener((msg) => {
-    if (msg.type === "RENDER_NOW" && msg.data) applyData(msg.data);
+  browser.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+    if (msg.type === "RENDER_NOW" && msg.data) { applyData(msg.data); return; }
+    if (msg.type === "FETCH_AND_REPLY") {
+      loadAndRender().then(d => sendResponse(d || null));
+      return true; // async
+    }
+  });
+
+  // SSE stream ended → re-fetch usage after short delay (server needs ~500ms to update)
+  window.addEventListener("cug-stream-done", () => {
+    setTimeout(loadAndRender, 800);
   });
 
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") loadAndRender();
   });
 
+  injectStreamWatcher();
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else setTimeout(init, 600);
 

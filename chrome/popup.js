@@ -142,63 +142,42 @@ function render(data) {
   }
 }
 
-function fetchViaTab(tabId) {
-  return new Promise((resolve) => {
-    chrome.scripting.executeScript({
-      target: { tabId },
-      func: async () => {
-        try {
-          const orgsRes = await fetch("/api/organizations", { credentials: "include" });
-          const orgs = await orgsRes.json();
-          const id = orgs?.[0]?.uuid || orgs?.[0]?.id;
-          if (!id) return null;
-          const res = await fetch(`/api/organizations/${id}/usage`, { credentials: "include" });
-          return res.ok ? await res.json() : null;
-        } catch(e) { return null; }
-      }
-    }, (results) => resolve(results?.[0]?.result || null));
-  });
-}
-
 async function load() {
   document.getElementById("loading").style.display = "block";
   document.getElementById("main").style.display = "none";
 
+  // Try cached data first
   const cached = await new Promise((r) => chrome.runtime.sendMessage({ type: "GET_DATA" }, r));
   if (cached?.data) { render(cached.data); return; }
 
+  // No cache: ask content script in open tab
   const tabs = await new Promise((r) => chrome.tabs.query({ url: "*://claude.ai/*" }, r));
   if (tabs.length > 0) {
-    const data = await fetchViaTab(tabs[0].id);
-    if (data) {
-      chrome.runtime.sendMessage({ type: "STORE_DATA", data });
-      render(data);
-      return;
-    }
+    const data = await new Promise((r) =>
+      chrome.tabs.sendMessage(tabs[0].id, { type: "FETCH_AND_REPLY" }, (d) => r(d || null))
+    );
+    if (data) { render(data); return; }
   }
 
-  const result = await new Promise((r) => chrome.runtime.sendMessage({ type: "FETCH_NOW" }, r));
-  render(result?.data || null);
+  render(null);
 }
 
 async function refresh() {
   document.getElementById("loading").style.display = "block";
   document.getElementById("main").style.display = "none";
 
-  let data = null;
+  // Ask the content script in an open claude.ai tab to fetch — it has the user's cookies
   const tabs = await new Promise((r) => chrome.tabs.query({ url: "*://claude.ai/*" }, r));
-  if (tabs.length > 0) data = await fetchViaTab(tabs[0].id);
-  if (!data) {
-    const result = await new Promise((r) => chrome.runtime.sendMessage({ type: "FETCH_NOW" }, r));
-    data = result?.data || null;
+  if (tabs.length > 0) {
+    const data = await new Promise((r) =>
+      chrome.tabs.sendMessage(tabs[0].id, { type: "FETCH_AND_REPLY" }, (d) => r(d || null))
+    );
+    if (data) { render(data); return; }
   }
-  if (data) {
-    await new Promise((r) => chrome.runtime.sendMessage({ type: "STORE_DATA", data }, r));
-    chrome.tabs.query({ url: "*://claude.ai/*" }, (tabs) => {
-      tabs.forEach((t) => chrome.tabs.sendMessage(t.id, { type: "RENDER_NOW", data }).catch(() => {}));
-    });
-  }
-  render(data);
+
+  // Fallback: cached data from background
+  const cached = await new Promise((r) => chrome.runtime.sendMessage({ type: "GET_DATA" }, r));
+  render(cached?.data || null);
 }
 
 applyStaticText();
