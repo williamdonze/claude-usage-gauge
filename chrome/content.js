@@ -166,7 +166,11 @@
     if (!gaugeEl) return;
     const d = await fetchUsage();
     if (!d) { log("fetchUsage returned null"); return; }
-    log("data:", JSON.stringify(Object.keys(d)), "5h:", d.five_hour?.utilization, "7d:", d.seven_day?.utilization);
+    log("keys:", JSON.stringify(Object.keys(d)), "5h:", d.five_hour?.utilization, "7d:", d.seven_day?.utilization);
+    // Log rich fields to understand their structure
+    for (const k of ["seven_day_breakdown","seven_day_opus","seven_day_sonnet","seven_day_cowork","seven_day_oauth_apps","spend","extra_usage","limits","promo_credits","pace","indicator","tangelo","omelette"]) {
+      if (d[k] !== undefined) log(k, "→", JSON.stringify(d[k]));
+    }
     applyData(d);
     try { chrome.runtime.sendMessage({ type: "STORE_DATA", data: d }); } catch(e) {}
     return d;
