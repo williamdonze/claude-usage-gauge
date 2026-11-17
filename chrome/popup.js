@@ -161,26 +161,18 @@ function formatCurrency(val) {
 }
 
 function renderBreakdown(data) {
-  // Try common field names the API might use for product breakdown
-  const breakdown =
-    data.usage_breakdown ||
-    data.product_breakdown ||
-    data.products ||
-    data.breakdown ||
-    data.per_product ||
-    null;
-
   const sec = document.getElementById("section-breakdown");
   const rowsEl = document.getElementById("bd-rows");
 
-  if (!breakdown) {
-    sec.style.display = "none";
-    return;
-  }
+  // Try breakdown data from candidate endpoints (attached as _breakdown)
+  const breakdown = data._breakdown || null;
+  if (!breakdown) { sec.style.display = "none"; return; }
 
   const entries = Array.isArray(breakdown)
     ? breakdown
-    : Object.entries(breakdown).map(([key, val]) => ({ key, ...val }));
+    : Object.entries(breakdown).map(([key, val]) =>
+        typeof val === "object" ? { key, ...val } : { key, value: val }
+      );
 
   if (entries.length === 0) { sec.style.display = "none"; return; }
 
@@ -188,30 +180,33 @@ function renderBreakdown(data) {
   for (const entry of entries) {
     const name = formatProductName(entry.key || entry.product || entry.name || "");
     const pct  = entry.utilization ?? entry.percentage ?? entry.pct ?? null;
-    const val  = pct != null ? `${Math.round(pct)}%` : (entry.value ?? "");
+    const val  = pct != null ? `${Math.round(pct)}%` : (entry.value != null ? String(entry.value) : "");
+    if (!name || !val) continue;
 
     const row = document.createElement("div");
     row.className = "breakdown-row";
     row.innerHTML = `<span class="breakdown-name">${name}</span><span class="breakdown-val" style="color:${getColor(pct)}">${val}</span>`;
     rowsEl.appendChild(row);
   }
-  sec.style.display = "block";
+  sec.style.display = rowsEl.children.length ? "block" : "none";
 }
 
 function renderCredits(data) {
-  // Try common field names for extra credits cost
-  const raw =
-    data.extra_credits_cost ??
-    data.extra_credits_used ??
-    data.overage_cost ??
-    data.overage_credits ??
-    data.additional_credits_cost ??
-    null;
-
   const sec = document.getElementById("section-credits");
-  if (raw == null || raw === 0) { sec.style.display = "none"; return; }
+  // Show dollar info from the five_hour window if non-null
+  const used  = data.five_hour?.used_dollars;
+  const limit = data.five_hour?.limit_dollars;
+  const rem   = data.five_hour?.remaining_dollars;
 
-  document.getElementById("cred-val").textContent = formatCurrency(raw);
+  if (used == null && limit == null) { sec.style.display = "none"; return; }
+
+  const parts = [];
+  if (used  != null) parts.push(`Used: ${formatCurrency(used)}`);
+  if (limit != null) parts.push(`Limit: ${formatCurrency(limit)}`);
+  if (rem   != null) parts.push(`Left: ${formatCurrency(rem)}`);
+
+  document.getElementById("cred-label").textContent = parts.join("  ·  ");
+  document.getElementById("cred-val").textContent = "";
   sec.style.display = "block";
 }
 

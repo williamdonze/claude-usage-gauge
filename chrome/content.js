@@ -32,7 +32,25 @@
     try {
       const res = await fetch(`${BASE}/api/organizations/${id}/usage`, { credentials: "include" });
       if (!res.ok) return null;
-      return await res.json();
+      const data = await res.json();
+      // Try fetching breakdown from candidate endpoints
+      const breakdownUrls = [
+        `${BASE}/api/organizations/${id}/usage/breakdown`,
+        `${BASE}/api/organizations/${id}/stats`,
+        `${BASE}/api/organizations/${id}/usage_breakdown`,
+      ];
+      for (const url of breakdownUrls) {
+        try {
+          const r = await fetch(url, { credentials: "include" });
+          if (r.ok) {
+            const bd = await r.json();
+            log("breakdown endpoint found:", url, JSON.stringify(bd).slice(0, 200));
+            data._breakdown = bd;
+            break;
+          }
+        } catch(e) {}
+      }
+      return data;
     } catch(e) { return null; }
   }
 
