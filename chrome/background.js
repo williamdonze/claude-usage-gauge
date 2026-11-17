@@ -9,12 +9,59 @@ function badgeColor(pct) {
   return "#dc2626";
 }
 
-async function updateBadge(data) {
-  if (!data) { chrome.action.setBadgeText({ text: "" }); return; }
-  const pct = Math.round(data.five_hour?.utilization ?? 0);
-  const text = pct > 0 ? String(pct) : "";
-  await chrome.action.setBadgeText({ text });
-  await chrome.action.setBadgeBackgroundColor({ color: badgeColor(pct) });
+let cachedIconBitmap = null;
+
+async function getIconBitmap() {
+  if (cachedIconBitmap) return cachedIconBitmap;
+  try {
+    const url = chrome.runtime.getURL("icons/icon96.png");
+    const res = await fetch(url);
+    const blob = await res.blob();
+    cachedIconBitmap = await createImageBitmap(blob);
+  } catch(e) {}
+  return cachedIconBitmap;
+}
+
+async function updateIcon(data) {
+  const size = 96;
+  const canvas = new OffscreenCanvas(size, size);
+  const ctx = canvas.getContext("2d");
+
+  const bitmap = await getIconBitmap();
+  if (bitmap) ctx.drawImage(bitmap, 0, 0, size, size);
+
+  if (data) {
+    const pct = Math.round(data.five_hour?.utilization ?? 0);
+    if (pct > 0) {
+      const text = pct >= 100 ? "!!" : String(pct);
+      const r = 22;
+      const cx = size - r - 2, cy = size - r - 2;
+
+      // colored circle badge
+      ctx.fillStyle = badgeColor(pct);
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fill();
+
+      // white border
+      ctx.strokeStyle = "rgba(255,255,255,0.9)";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // percentage text
+      const fontSize = text.length > 2 ? 17 : 20;
+      ctx.font = `bold ${fontSize}px -apple-system, BlinkMacSystemFont, sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = "#ffffff";
+      ctx.fillText(text, cx, cy + 1);
+    }
+  }
+
+  const imageData = ctx.getImageData(0, 0, size, size);
+  chrome.action.setIcon({ imageData: { 96: imageData } });
 }
 
 async function appendHistory(data) {
@@ -39,7 +86,7 @@ async function fetchUsage() {
     if (!res.ok) return null;
     const data = await res.json();
     await chrome.storage.local.set({ usageData: data });
-    await updateBadge(data);
+    await updateIcon(data);
     await appendHistory(data);
     return data;
   } catch(e) { return null; }
@@ -48,7 +95,7 @@ async function fetchUsage() {
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg.type === "STORE_DATA") {
     chrome.storage.local.set({ usageData: msg.data }, async () => {
-      await updateBadge(msg.data);
+      await updateIcon(msg.data);
       await appendHistory(msg.data);
       sendResponse({ ok: true });
     });
@@ -66,5 +113,5 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   }
 });
 
-// Restore badge on startup
-chrome.storage.local.get("usageData", ({ usageData }) => updateBadge(usageData || null));
+// Restore icon on startup
+chrome.storage.local.get("usageData", ({ usageData }) => updateIcon(usageData || null));

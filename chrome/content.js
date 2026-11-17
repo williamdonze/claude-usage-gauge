@@ -84,50 +84,44 @@
   }
   function txt(tag, cls, text) { const e = mk(tag, null, cls); e.textContent = text; return e; }
 
-  function buildCol(prefix, label) {
-    const col = mk("div", null, "cug-col");
-    const top = mk("div", null, "cug-col-top");
-    top.appendChild(txt("span", "cug-label", label));
-    top.appendChild(mk("span", `cug-${prefix}-pct`, "cug-pct"));
-    const track = mk("div", null, "cug-track");
-    track.appendChild(mk("div", `cug-${prefix}-fill`, "cug-fill"));
-    col.appendChild(top);
-    col.appendChild(track);
-    col.appendChild(mk("span", `cug-${prefix}-rst`, "cug-rst"));
-    return col;
-  }
-
   function buildGauge() {
-    const el   = mk("div", "claude-usage-gauge");
-    const cols = mk("div", null, "cug-cols");
-    cols.appendChild(buildCol("5h", T.session));
-    cols.appendChild(mk("div", null, "cug-sep"));
-    cols.appendChild(buildCol("7d", T.week));
-    el.appendChild(cols);
+    const el = mk("div", "claude-usage-gauge");
+    el.appendChild(txt("span", "cug-label", T.session));
+    const track = mk("div", null, "cug-track");
+    track.appendChild(mk("div", "cug-5h-fill", "cug-fill"));
+    el.appendChild(track);
+    el.appendChild(mk("span", "cug-5h-pct", "cug-5h-pct"));
+    const dot = mk("span", null, "cug-dot"); dot.textContent = "·";
+    el.appendChild(dot);
+    const wrap = mk("div", null, "cug-7d-wrap");
+    wrap.appendChild(txt("span", "cug-7d-label", T.week));
+    wrap.appendChild(mk("span", "cug-7d-pct", "cug-7d-pct"));
+    el.appendChild(wrap);
     return el;
   }
 
   let lastData = null;
 
-  function fillCol(prefix, pct, iso) {
-    const c = color(pct);
-    const pctEl  = document.getElementById(`cug-${prefix}-pct`);
-    const fillEl = document.getElementById(`cug-${prefix}-fill`);
-    const rstEl  = document.getElementById(`cug-${prefix}-rst`);
-    if (pctEl)  { pctEl.textContent = `${Math.round(pct)}%`; pctEl.style.color = c; }
-    if (fillEl) {
-      fillEl.style.width = `${Math.min(100, pct)}%`;
-      fillEl.style.background = c;
-      fillEl.classList.toggle("cug-fill--critical", pct >= 90);
-    }
-    if (rstEl)  { rstEl.textContent = formatReset(iso); }
-  }
-
   function applyData(d) {
     lastData = d;
     if (!gaugeEl) return;
-    fillCol("5h", d.five_hour?.utilization ?? 0, d.five_hour?.resets_at);
-    fillCol("7d", d.seven_day?.utilization ?? 0, d.seven_day?.resets_at);
+
+    const h5pct  = d.five_hour?.utilization ?? 0;
+    const d7pct  = d.seven_day?.utilization ?? 0;
+    const c5     = color(h5pct);
+    const c7     = color(d7pct);
+
+    const pctEl  = document.getElementById("cug-5h-pct");
+    const fillEl = document.getElementById("cug-5h-fill");
+    const d7El   = document.getElementById("cug-7d-pct");
+
+    if (pctEl)  { pctEl.textContent = `${Math.round(h5pct)}%`; pctEl.style.color = c5; }
+    if (fillEl) {
+      fillEl.style.width = `${Math.min(100, h5pct)}%`;
+      fillEl.style.background = c5;
+      fillEl.classList.toggle("cug-fill--critical", h5pct >= 90);
+    }
+    if (d7El)   { d7El.textContent = `${Math.round(d7pct)}%`; d7El.style.color = c7; }
   }
 
   async function loadAndRender() {

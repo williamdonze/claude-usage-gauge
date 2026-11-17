@@ -1,84 +1,43 @@
-/* gauge.css v10 */
+/* gauge.css v12 */
 
 #claude-usage-gauge {
-  --cug-bg:      rgba(255, 255, 255, 0.88);
-  --cug-border:  rgba(0, 0, 0, 0.09);
-  --cug-muted:   rgba(0, 0, 0, 0.38);
-  --cug-track:   rgba(0, 0, 0, 0.07);
-
   pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   width: calc(100% - 16px);
-  margin: 6px 8px 2px;
-  padding: 8px 12px;
+  margin: 4px 8px 2px;
+  padding: 2px 2px;
   box-sizing: border-box;
-  background: var(--cug-bg);
-  border: 1px solid var(--cug-border);
-  border-radius: 10px;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  #claude-usage-gauge {
-    --cug-bg:     rgba(28, 28, 30, 0.82);
-    --cug-border: rgba(255, 255, 255, 0.10);
-    --cug-muted:  rgba(255, 255, 255, 0.35);
-    --cug-track:  rgba(255, 255, 255, 0.08);
-  }
-}
-
-/* ── Two columns ── */
-.cug-cols {
-  display: flex;
-  align-items: stretch;
-  gap: 0;
-}
-
-.cug-col {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  min-width: 0;
-}
-
-.cug-sep {
-  width: 1px;
-  background: var(--cug-border);
-  margin: 0 12px;
-  flex-shrink: 0;
-}
-
-/* ── Top row: label + pct ── */
-.cug-col-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-}
-
+/* ── 5h label ── */
 .cug-label {
   font-size: 10px;
   font-weight: 500;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--cug-muted);
-}
-
-.cug-pct {
-  font-size: 15px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  color: rgba(0, 0, 0, 0.38);
+  flex-shrink: 0;
   line-height: 1;
-  transition: color 0.4s;
 }
 
-/* ── Progress bar ── */
+@media (prefers-color-scheme: dark) {
+  .cug-label { color: rgba(255, 255, 255, 0.38); }
+}
+
+/* ── Progress track ── */
 .cug-track {
+  flex: 1;
   height: 4px;
-  background: var(--cug-track);
+  background: rgba(0, 0, 0, 0.10);
   border-radius: 999px;
   overflow: hidden;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cug-track { background: rgba(255, 255, 255, 0.12); }
 }
 
 .cug-fill {
@@ -88,18 +47,56 @@
   transition: width 0.9s cubic-bezier(0.16, 1, 0.3, 1), background 0.4s;
 }
 
-/* ── Reset time ── */
-.cug-rst {
-  font-size: 10px;
-  color: var(--cug-muted);
-  letter-spacing: 0.01em;
+/* ── 5h percentage ── */
+.cug-5h-pct {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   line-height: 1;
-  animation: cug-fade-in 0.3s ease;
+  flex-shrink: 0;
+  transition: color 0.4s;
 }
 
-@keyframes cug-fade-in {
-  from { opacity: 0; transform: translateY(2px); }
-  to   { opacity: 1; transform: translateY(0); }
+/* ── Separator dot ── */
+.cug-dot {
+  font-size: 10px;
+  color: rgba(0, 0, 0, 0.22);
+  flex-shrink: 0;
+  line-height: 1;
+  user-select: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cug-dot { color: rgba(255, 255, 255, 0.22); }
+}
+
+/* ── 7-day block ── */
+.cug-7d-wrap {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.cug-7d-label {
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.30);
+  line-height: 1;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cug-7d-label { color: rgba(255, 255, 255, 0.30); }
+}
+
+.cug-7d-pct {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  transition: color 0.4s;
 }
 
 /* ── Critical pulse (>= 90%) ── */
