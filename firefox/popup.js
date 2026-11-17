@@ -1,4 +1,4 @@
-// popup.js — Firefox
+// popup.js — Chrome MV3
 
 const TRANSLATIONS = {
   fr: {
@@ -112,10 +112,10 @@ function formatResetIn(isoDate) {
 
 function getColor(pct) {
   if (pct == null) return "#6b7280";
-  if (pct < 50)  return "#22c55e";
-  if (pct < 75)  return "#f59e0b";
-  if (pct < 90)  return "#f97316";
-  return "#ef4444";
+  if (pct < 50)  return "#16a34a";
+  if (pct < 75)  return "#d97706";
+  if (pct < 90)  return "#ea580c";
+  return "#dc2626";
 }
 
 function render(data) {
@@ -130,7 +130,7 @@ function render(data) {
     document.getElementById(`p-${prefix}-reset`).textContent = formatResetIn(resetsAt);
     const fill = document.getElementById(`p-${prefix}-fill`);
     fill.style.width = `${Math.min(100, pct)}%`;
-    fill.style.background = `linear-gradient(90deg, ${color}99, ${color})`;
+    fill.style.background = color;
   }
 
   if (data) {
@@ -142,48 +142,111 @@ function render(data) {
   }
 }
 
-async function fetchDirect() {
-  try {
-    const orgsRes = await fetch("https://claude.ai/api/organizations", { credentials: "include" });
-    if (!orgsRes.ok) return null;
-    const orgs = await orgsRes.json();
-    const orgId = orgs?.[0]?.uuid || orgs?.[0]?.id;
-    if (!orgId) return null;
-    const res = await fetch(`https://claude.ai/api/organizations/${orgId}/usage`, { credentials: "include" });
-    return res.ok ? await res.json() : null;
-  } catch(e) { return null; }
+function fetchViaTab(tabId) {
+  return new Promise((resolve) => {
+    browser.scripting.executeScript({
+      target: { tabId },
+      func: async () => {
+        try {
+          const orgsRes = await fetch("/api/organizations", { credentials: "include" });
+          const orgs = await orgsRes.json();
+          const id = orgs?.[0]?.uuid || orgs?.[0]?.id;
+          if (!id) return null;
+          const res = await fetch(`/api/organizations/${id}/usage`, { credentials: "include" });
+          return res.ok ? await res.json() : null;
+        } catch(e) { return null; }
+      }
+    }, (results) => resolve(results?.[0]?.result || null));
+  });
 }
 
 async function load() {
   document.getElementById("loading").style.display = "block";
   document.getElementById("main").style.display = "none";
 
-  // 1. Essaie le cache du background
-  const cached = await browser.runtime.sendMessage({ type: "GET_DATA" });
+  // 1. Cache du background (inclut l'historique)
+  const cached = await new Promise((r) => browser.runtime.sendMessage({ type: "GET_DATA" }, r));
+  if (cached?.history?.length) renderSparkline(cached.history);
   if (cached?.data) { render(cached.data); return; }
 
-  // 2. Fetch direct depuis le popup (fonctionne sans onglet claude.ai ouvert)
-  const data = await fetchDirect();
-  if (data) {
-    browser.runtime.sendMessage({ type: "STORE_DATA", data });
-    render(data);
-    return;
+  // 2. N'importe quel onglet claude.ai ouvert
+  const tabs = await new Promise((r) => browser.tabs.query({ url: "*://claude.ai/*" }, r));
+  if (tabs.length > 0) {
+    const data = await fetchViaTab(tabs[0].id);
+    if (data) {
+      browser.runtime.sendMessage({ type: "STORE_DATA", data });
+      render(data);
+      return;
+    }
   }
 
-  render(null);
+  // 3. Fetch depuis le background (pas besoin d'onglet)
+  const result = await new Promise((r) => browser.runtime.sendMessage({ type: "FETCH_NOW" }, r));
+  render(result?.data || null);
 }
 
 async function refresh() {
   document.getElementById("loading").style.display = "block";
   document.getElementById("main").style.display = "none";
 
-  const data = await fetchDirect();
+  // Fetch frais, skip cache
+  let data = null;
+  const tabs = await new Promise((r) => browser.tabs.query({ url: "*://claude.ai/*" }, r));
+  if (tabs.length > 0) data = await fetchViaTab(tabs[0].id);
+  if (!data) {
+    const result = await new Promise((r) => browser.runtime.sendMessage({ type: "FETCH_NOW" }, r));
+    data = result?.data || null;
+  }
   if (data) {
     browser.runtime.sendMessage({ type: "STORE_DATA", data });
-    const tabs = await browser.tabs.query({ url: "*://claude.ai/*" });
-    tabs.forEach((t) => browser.tabs.sendMessage(t.id, { type: "RENDER_NOW", data }).catch(() => {}));
+    // Notifie tous les onglets claude.ai de re-rendre
+    browser.tabs.query({ url: "*://claude.ai/*" }, (tabs) => {
+      tabs.forEach((t) => browser.tabs.sendMessage(t.id, { type: "RENDER_NOW", data }).catch(() => {}));
+    });
   }
   render(data);
+}
+
+function renderSparkline(history) {
+  if (!history || history.length < 2) return;
+  const wrap = document.getElementById("sparkline-wrap");
+  const svg  = document.getElementById("sparkline-svg");
+  if (!wrap || !svg) return;
+  wrap.style.display = "block";
+
+  const W = 272, H = 44, pad = 2;
+  const n = history.length;
+
+  function points(key, color) {
+    const pts = history.map((p, i) => {
+      const x = pad + (i / (n - 1)) * (W - pad * 2);
+      const y = H - pad - (p[key] / 100) * (H - pad * 2);
+      return `${x},${y}`;
+    }).join(" ");
+    const poly = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+    poly.setAttribute("points", pts);
+    poly.setAttribute("fill", "none");
+    poly.setAttribute("stroke", color);
+    poly.setAttribute("stroke-width", "1.5");
+    poly.setAttribute("stroke-linejoin", "round");
+    poly.setAttribute("stroke-linecap", "round");
+    svg.appendChild(poly);
+
+    // last point dot
+    const last = history[n - 1];
+    const lx = W - pad;
+    const ly = H - pad - (last[key] / 100) * (H - pad * 2);
+    const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    dot.setAttribute("cx", lx);
+    dot.setAttribute("cy", ly);
+    dot.setAttribute("r", "2.5");
+    dot.setAttribute("fill", color);
+    svg.appendChild(dot);
+  }
+
+  svg.replaceChildren();
+  points("h5", "#d97706");
+  points("d7", "#6366f1");
 }
 
 applyStaticText();

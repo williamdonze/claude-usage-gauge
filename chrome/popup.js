@@ -164,8 +164,9 @@ async function load() {
   document.getElementById("loading").style.display = "block";
   document.getElementById("main").style.display = "none";
 
-  // 1. Cache du background
+  // 1. Cache du background (inclut l'historique)
   const cached = await new Promise((r) => chrome.runtime.sendMessage({ type: "GET_DATA" }, r));
+  if (cached?.history?.length) renderSparkline(cached.history);
   if (cached?.data) { render(cached.data); return; }
 
   // 2. N'importe quel onglet claude.ai ouvert
@@ -204,6 +205,48 @@ async function refresh() {
     });
   }
   render(data);
+}
+
+function renderSparkline(history) {
+  if (!history || history.length < 2) return;
+  const wrap = document.getElementById("sparkline-wrap");
+  const svg  = document.getElementById("sparkline-svg");
+  if (!wrap || !svg) return;
+  wrap.style.display = "block";
+
+  const W = 272, H = 44, pad = 2;
+  const n = history.length;
+
+  function points(key, color) {
+    const pts = history.map((p, i) => {
+      const x = pad + (i / (n - 1)) * (W - pad * 2);
+      const y = H - pad - (p[key] / 100) * (H - pad * 2);
+      return `${x},${y}`;
+    }).join(" ");
+    const poly = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+    poly.setAttribute("points", pts);
+    poly.setAttribute("fill", "none");
+    poly.setAttribute("stroke", color);
+    poly.setAttribute("stroke-width", "1.5");
+    poly.setAttribute("stroke-linejoin", "round");
+    poly.setAttribute("stroke-linecap", "round");
+    svg.appendChild(poly);
+
+    // last point dot
+    const last = history[n - 1];
+    const lx = W - pad;
+    const ly = H - pad - (last[key] / 100) * (H - pad * 2);
+    const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    dot.setAttribute("cx", lx);
+    dot.setAttribute("cy", ly);
+    dot.setAttribute("r", "2.5");
+    dot.setAttribute("fill", color);
+    svg.appendChild(dot);
+  }
+
+  svg.replaceChildren();
+  points("h5", "#d97706");
+  points("d7", "#6366f1");
 }
 
 applyStaticText();

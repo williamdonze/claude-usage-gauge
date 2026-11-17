@@ -152,6 +152,48 @@
       padding: 4px 0 8px;
       display: none;
     }
+
+    /* ── Sparkline ── */
+    #sparkline-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px 8px;
+      margin-bottom: 8px;
+      box-shadow: var(--shadow);
+      display: none;
+    }
+    #sparkline-title {
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 6px;
+    }
+    #sparkline-svg {
+      width: 100%;
+      height: 44px;
+      display: block;
+      overflow: visible;
+    }
+    .spark-legend {
+      display: flex;
+      gap: 12px;
+      margin-top: 5px;
+    }
+    .spark-legend span {
+      font-size: 10px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .spark-dot {
+      width: 8px; height: 3px;
+      border-radius: 999px;
+      display: inline-block;
+    }
   </style>
 </head>
 <body>
@@ -189,6 +231,15 @@
 
     <div id="p-nodata"></div>
     <button id="btn-refresh"></button>
+  </div>
+
+  <div id="sparkline-wrap">
+    <div id="sparkline-title">History</div>
+    <svg id="sparkline-svg" viewBox="0 0 272 44" preserveAspectRatio="none"></svg>
+    <div class="spark-legend">
+      <span><b class="spark-dot" style="background:#d97706"></b> 5h session</span>
+      <span><b class="spark-dot" style="background:#6366f1"></b> 7 days</span>
+    </div>
   </div>
 
   <script src="popup.js"></script>
