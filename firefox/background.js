@@ -2,10 +2,11 @@
 
 const MAX_HISTORY = 24;
 
-function arcColor(pct) {
-  if (pct < 50) return "#16a34a";
-  if (pct < 75) return "#d97706";
-  if (pct < 90) return "#ea580c";
+function arcColor(pct, settings) {
+  const o = settings?.orangeAt ?? 50;
+  const r = settings?.redAt ?? 75;
+  if (pct < o) return "#16a34a";
+  if (pct < r) return "#d97706";
   return "#dc2626";
 }
 
@@ -14,6 +15,7 @@ async function updateIcon(data) {
   const canvas = new OffscreenCanvas(size, size);
   const ctx = canvas.getContext("2d");
 
+  const { cugSettings } = await chrome.storage.local.get("cugSettings");
   const pct = data ? Math.round(data.five_hour?.utilization ?? 0) : 0;
   const cx = size / 2, cy = size / 2;
   const r = 55, lw = 22;   // large ring, nearly fills the icon
@@ -30,7 +32,7 @@ async function updateIcon(data) {
   if (pct > 0) {
     const start = -Math.PI / 2;
     const end   = start + (Math.min(pct, 100) / 100) * Math.PI * 2;
-    ctx.strokeStyle = arcColor(pct);
+    ctx.strokeStyle = arcColor(pct, cugSettings);
     ctx.lineWidth = lw;
     ctx.lineCap = "round";
     ctx.beginPath();
@@ -41,25 +43,25 @@ async function updateIcon(data) {
   // No text in center — ring only
 
   const imageData = ctx.getImageData(0, 0, size, size);
-  browser.browserAction.setIcon({ imageData: { 128: imageData } });
+  chrome.action.setIcon({ imageData: { 128: imageData } });
 
   // Tooltip on hover
   const d7pct = data ? Math.round(data.seven_day?.utilization ?? 0) : 0;
   const title = pct > 0
     ? `Claude Usage\n5h session: ${pct}%\n7-day: ${d7pct}%`
     : "Claude Usage Tracker";
-  browser.browserAction.setTitle({ title });
+  chrome.action.setTitle({ title });
 }
 
 async function appendHistory(data) {
-  const { usageHistory = [] } = await browser.storage.local.get("usageHistory");
+  const { usageHistory = [] } = await chrome.storage.local.get("usageHistory");
   usageHistory.push({
     t: Date.now(),
     h5: Math.round(data.five_hour?.utilization ?? 0),
     d7: Math.round(data.seven_day?.utilization ?? 0),
   });
   if (usageHistory.length > MAX_HISTORY) usageHistory.splice(0, usageHistory.length - MAX_HISTORY);
-  await browser.storage.local.set({ usageHistory });
+  await chrome.storage.local.set({ usageHistory });
 }
 
 async function fetchUsage() {
@@ -72,22 +74,22 @@ async function fetchUsage() {
     const res = await fetch(`https://claude.ai/api/organizations/${orgId}/usage`, { credentials: "include" });
     if (!res.ok) return null;
     const data = await res.json();
-    await browser.storage.local.set({ usageData: data });
+    await chrome.storage.local.set({ usageData: data });
     await updateIcon(data);
     await appendHistory(data);
     return data;
   } catch(e) { return null; }
 }
 
-browser.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg.type === "STORE_DATA") {
-    browser.storage.local.set({ usageData: msg.data }, async () => {
+    chrome.storage.local.set({ usageData: msg.data }, async () => {
       await updateIcon(msg.data);
       await appendHistory(msg.data);
       // Broadcast to all open claude.ai tabs so the gauge stays in sync
-      browser.tabs.query({ url: "*://claude.ai/*" }, (tabs) => {
+      chrome.tabs.query({ url: "*://claude.ai/*" }, (tabs) => {
         for (const t of tabs) {
-          browser.tabs.sendMessage(t.id, { type: "RENDER_NOW", data: msg.data }).catch(() => {});
+          chrome.tabs.sendMessage(t.id, { type: "RENDER_NOW", data: msg.data }).catch(() => {});
         }
       });
       sendResponse({ ok: true });
@@ -95,7 +97,7 @@ browser.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     return true;
   }
   if (msg.type === "GET_DATA") {
-    browser.storage.local.get(["usageData", "usageHistory"], (result) => {
+    chrome.storage.local.get(["usageData", "usageHistory"], (result) => {
       sendResponse({ data: result.usageData || null, history: result.usageHistory || [] });
     });
     return true;
@@ -107,4 +109,4 @@ browser.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 });
 
 // Restore icon on startup
-browser.storage.local.get("usageData", ({ usageData }) => updateIcon(usageData || null));
+chrome.storage.local.get("usageData", ({ usageData }) => updateIcon(usageData || null));

@@ -122,6 +122,9 @@ function getLang() {
 
 const T = getLang();
 
+// Thresholds — loaded from storage, defaults shown
+let cugSettings = { orangeAt: 50, redAt: 75 };
+
 // Arc circumference for r=15
 const ARC_CIRC = 2 * Math.PI * 15; // ≈ 94.25
 
@@ -148,9 +151,10 @@ function formatResetIn(isoDate) {
 
 function getColor(pct) {
   if (pct == null) return "#6b7280";
-  if (pct < 50)  return "#16a34a";
-  if (pct < 75)  return "#d97706";
-  if (pct < 90)  return "#ea580c";
+  const o = cugSettings.orangeAt ?? 50;
+  const r = cugSettings.redAt ?? 75;
+  if (pct < o) return "#16a34a";
+  if (pct < r) return "#d97706";
   return "#dc2626";
 }
 
@@ -196,7 +200,7 @@ function renderBreakdown(data) {
         `<span class="breakdown-val" style="color:${color}">${row.percent}%</span>` +
       `</div>` +
       `<div class="bd-mini-track">` +
-        `<div class="bd-mini-fill" style="width:0%;background:${color}" data-pct="${row.percent}"></div>` +
+        `<div class="bd-mini-fill" style="width:0%" data-pct="${row.percent}"></div>` +
       `</div>`;
     rowsEl.appendChild(div);
   }
@@ -313,6 +317,58 @@ async function refresh() {
   render(cached?.data || null);
 }
 
+function applySettingsUI() {
+  document.getElementById("sl-orange").value = cugSettings.orangeAt;
+  document.getElementById("val-orange").textContent = cugSettings.orangeAt + "%";
+  document.getElementById("sl-red").value = cugSettings.redAt;
+  document.getElementById("val-red").textContent = cugSettings.redAt + "%";
+}
+
+async function saveSettings() {
+  await chrome.storage.local.set({ cugSettings });
+  // Notify open tabs to re-render with new thresholds
+  const tabs = await new Promise((r) => chrome.tabs.query({ url: "*://claude.ai/*" }, r));
+  for (const t of tabs) {
+    chrome.tabs.sendMessage(t.id, { type: "SETTINGS_CHANGED", settings: cugSettings }).catch(() => {});
+  }
+}
+
+function wireSettingsPanel() {
+  const btn   = document.getElementById("btn-gear");
+  const panel = document.getElementById("settings-panel");
+  btn.addEventListener("click", () => {
+    const open = panel.classList.toggle("open");
+    btn.classList.toggle("active", open);
+  });
+
+  const slOrange = document.getElementById("sl-orange");
+  const slRed    = document.getElementById("sl-red");
+
+  slOrange.addEventListener("input", () => {
+    const v = parseInt(slOrange.value);
+    // Keep orange < red
+    if (v >= cugSettings.redAt) { slOrange.value = cugSettings.redAt - 5; return; }
+    cugSettings.orangeAt = v;
+    document.getElementById("val-orange").textContent = v + "%";
+    saveSettings();
+  });
+
+  slRed.addEventListener("input", () => {
+    const v = parseInt(slRed.value);
+    if (v <= cugSettings.orangeAt) { slRed.value = cugSettings.orangeAt + 5; return; }
+    cugSettings.redAt = v;
+    document.getElementById("val-red").textContent = v + "%";
+    saveSettings();
+  });
+}
+
 applyStaticText();
 document.getElementById("btn-refresh").addEventListener("click", refresh);
-load();
+wireSettingsPanel();
+
+// Load settings then data
+chrome.storage.local.get("cugSettings", (result) => {
+  if (result.cugSettings) cugSettings = { ...cugSettings, ...result.cugSettings };
+  applySettingsUI();
+  load();
+});

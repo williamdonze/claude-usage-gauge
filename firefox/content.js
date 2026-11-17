@@ -68,6 +68,9 @@
     return "↻ " + T.resetIn(d, h, m);
   }
 
+  let cugSettings = { orangeAt: 50, redAt: 75 };
+  chrome.storage.local.get("cugSettings", (r) => { if (r.cugSettings) cugSettings = { ...cugSettings, ...r.cugSettings }; });
+
   function formatMoney(amountMinor, decimalPlaces) {
     const val = amountMinor / Math.pow(10, decimalPlaces ?? 2);
     return "$" + val.toFixed(2);
@@ -75,9 +78,10 @@
 
   function color(pct) {
     if (pct == null) return "#9ca3af";
-    if (pct < 50) return "#16a34a";
-    if (pct < 75) return "#d97706";
-    if (pct < 90) return "#ea580c";
+    const o = cugSettings.orangeAt ?? 50;
+    const r = cugSettings.redAt ?? 75;
+    if (pct < o) return "#16a34a";
+    if (pct < r) return "#d97706";
     return "#dc2626";
   }
 
@@ -302,6 +306,11 @@
   }
 
   chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+    if (msg.type === "SETTINGS_CHANGED" && msg.settings) {
+      cugSettings = { ...cugSettings, ...msg.settings };
+      if (lastData) applyData(lastData);
+      return;
+    }
     if (msg.type === "RENDER_NOW" && msg.data) { applyData(msg.data); return; }
     if (msg.type === "FETCH_AND_REPLY") {
       loadAndRender().then(d => sendResponse(d || null));

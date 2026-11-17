@@ -2,10 +2,11 @@
 
 const MAX_HISTORY = 24;
 
-function arcColor(pct) {
-  if (pct < 50) return "#16a34a";
-  if (pct < 75) return "#d97706";
-  if (pct < 90) return "#ea580c";
+function arcColor(pct, settings) {
+  const o = settings?.orangeAt ?? 50;
+  const r = settings?.redAt ?? 75;
+  if (pct < o) return "#16a34a";
+  if (pct < r) return "#d97706";
   return "#dc2626";
 }
 
@@ -14,6 +15,7 @@ async function updateIcon(data) {
   const canvas = new OffscreenCanvas(size, size);
   const ctx = canvas.getContext("2d");
 
+  const { cugSettings } = await chrome.storage.local.get("cugSettings");
   const pct = data ? Math.round(data.five_hour?.utilization ?? 0) : 0;
   const cx = size / 2, cy = size / 2;
   const r = 55, lw = 22;   // large ring, nearly fills the icon
@@ -30,7 +32,7 @@ async function updateIcon(data) {
   if (pct > 0) {
     const start = -Math.PI / 2;
     const end   = start + (Math.min(pct, 100) / 100) * Math.PI * 2;
-    ctx.strokeStyle = arcColor(pct);
+    ctx.strokeStyle = arcColor(pct, cugSettings);
     ctx.lineWidth = lw;
     ctx.lineCap = "round";
     ctx.beginPath();
