@@ -6,7 +6,6 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* ── Thème détecté depuis la préférence système (synchro avec Claude) ── */
     :root {
       --bg:       #f9f9f8;
       --surface:  #ffffff;
@@ -37,7 +36,6 @@
       padding: 16px;
     }
 
-    /* ── Header ── */
     header {
       display: flex;
       align-items: center;
@@ -47,26 +45,12 @@
       border-bottom: 1px solid var(--border);
     }
 
-    .logo {
-      width: 32px; height: 32px;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-    }
+    .logo { width: 32px; height: 32px; flex-shrink: 0; }
     .logo img { width: 32px; height: 32px; }
 
-    h1 {
-      font-size: 13px; font-weight: 700;
-      letter-spacing: 0.01em;
-      line-height: 1.2;
-    }
-    h1 span {
-      display: block;
-      font-size: 10px; font-weight: 400;
-      color: var(--muted);
-      letter-spacing: 0.02em;
-    }
+    h1 { font-size: 13px; font-weight: 700; letter-spacing: 0.01em; line-height: 1.2; }
+    h1 span { display: block; font-size: 10px; font-weight: 400; color: var(--muted); letter-spacing: 0.02em; }
 
-    /* ── Cards ── */
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -83,28 +67,10 @@
       margin-bottom: 8px;
     }
 
-    .card-label {
-      font-size: 11px;
-      font-weight: 500;
-      color: var(--muted);
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-    }
+    .card-label { font-size: 11px; font-weight: 500; color: var(--muted); letter-spacing: 0.03em; text-transform: uppercase; }
+    .card-pct   { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
+    .card-sub   { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
 
-    .card-pct {
-      font-size: 22px;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      line-height: 1;
-    }
-
-    .card-sub {
-      font-size: 11px;
-      color: var(--muted);
-      margin-bottom: 8px;
-    }
-
-    /* ── Track ── */
     .track {
       height: 5px;
       background: var(--subtle);
@@ -118,7 +84,6 @@
       transition: width 0.7s cubic-bezier(0.16,1,0.3,1), background 0.4s;
     }
 
-    /* ── Bouton ── */
     button {
       width: 100%;
       padding: 9px;
@@ -134,73 +99,20 @@
       transition: background 0.15s, transform 0.1s;
       box-shadow: var(--shadow);
     }
-    button:hover { background: var(--subtle); }
+    button:hover  { background: var(--subtle); }
     button:active { transform: scale(0.98); }
 
-    #loading {
-      text-align: center;
-      padding: 24px 0;
-      color: var(--muted);
-      font-size: 12px;
-    }
-    #main { display: none; }
+    #loading { text-align: center; padding: 24px 0; color: var(--muted); font-size: 12px; }
+    #main    { display: none; }
     #p-nodata {
-      text-align: center;
-      color: var(--muted);
-      font-size: 11px;
-      font-style: italic;
-      padding: 4px 0 8px;
-      display: none;
-    }
-
-    /* ── Sparkline ── */
-    #sparkline-wrap {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 14px 8px;
-      margin-bottom: 8px;
-      box-shadow: var(--shadow);
-      display: none;
-    }
-    #sparkline-title {
-      font-size: 10px;
-      font-weight: 500;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      margin-bottom: 6px;
-    }
-    #sparkline-svg {
-      width: 100%;
-      height: 44px;
-      display: block;
-      overflow: visible;
-    }
-    .spark-legend {
-      display: flex;
-      gap: 12px;
-      margin-top: 5px;
-    }
-    .spark-legend span {
-      font-size: 10px;
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .spark-dot {
-      width: 8px; height: 3px;
-      border-radius: 999px;
-      display: inline-block;
+      text-align: center; color: var(--muted); font-size: 11px;
+      font-style: italic; padding: 4px 0 8px; display: none;
     }
   </style>
 </head>
 <body>
   <header>
-    <div class="logo">
-      <img src="icons/icon96.png" alt="Claude" />
-    </div>
+    <div class="logo"><img src="icons/icon96.png" alt="Claude Usage" /></div>
     <h1>Claude Usage<span id="p-subtitle"></span></h1>
   </header>
 
@@ -211,7 +123,7 @@
       <div class="card-head">
         <div>
           <div class="card-label" id="p-5h-label"></div>
-          <div class="card-sub" id="p-5h-reset"></div>
+          <div class="card-sub"  id="p-5h-reset"></div>
         </div>
         <div class="card-pct" id="p-5h-val">—</div>
       </div>
@@ -222,7 +134,7 @@
       <div class="card-head">
         <div>
           <div class="card-label" id="p-7d-label"></div>
-          <div class="card-sub" id="p-7d-reset"></div>
+          <div class="card-sub"  id="p-7d-reset"></div>
         </div>
         <div class="card-pct" id="p-7d-val">—</div>
       </div>
@@ -231,15 +143,6 @@
 
     <div id="p-nodata"></div>
     <button id="btn-refresh"></button>
-  </div>
-
-  <div id="sparkline-wrap">
-    <div id="sparkline-title">History</div>
-    <svg id="sparkline-svg" viewBox="0 0 272 44" preserveAspectRatio="none"></svg>
-    <div class="spark-legend">
-      <span><b class="spark-dot" style="background:#d97706"></b> 5h session</span>
-      <span><b class="spark-dot" style="background:#6366f1"></b> 7 days</span>
-    </div>
   </div>
 
   <script src="popup.js"></script>
