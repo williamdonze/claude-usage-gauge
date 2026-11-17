@@ -2,66 +2,55 @@
 
 const MAX_HISTORY = 24;
 
-function badgeColor(pct) {
+function arcColor(pct) {
   if (pct < 50) return "#16a34a";
   if (pct < 75) return "#d97706";
   if (pct < 90) return "#ea580c";
   return "#dc2626";
 }
 
-let cachedIconBitmap = null;
-
-async function getIconBitmap() {
-  if (cachedIconBitmap) return cachedIconBitmap;
-  try {
-    const url = chrome.runtime.getURL("icons/icon96.png");
-    const res = await fetch(url);
-    const blob = await res.blob();
-    cachedIconBitmap = await createImageBitmap(blob);
-  } catch(e) {}
-  return cachedIconBitmap;
-}
-
 async function updateIcon(data) {
-  const size = 96;
+  const size = 128;
   const canvas = new OffscreenCanvas(size, size);
   const ctx = canvas.getContext("2d");
 
-  const bitmap = await getIconBitmap();
-  if (bitmap) ctx.drawImage(bitmap, 0, 0, size, size);
+  const pct = data ? Math.round(data.five_hour?.utilization ?? 0) : 0;
+  const cx = size / 2, cy = size / 2;
+  const r = 50, lw = 18;
 
-  if (data) {
-    const pct = Math.round(data.five_hour?.utilization ?? 0);
-    if (pct > 0) {
-      const text = pct >= 100 ? "!!" : String(pct);
-      const r = 22;
-      const cx = size - r - 2, cy = size - r - 2;
+  // Track ring (light gray)
+  ctx.strokeStyle = "rgba(0,0,0,0.13)";
+  ctx.lineWidth = lw;
+  ctx.lineCap = "butt";
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.stroke();
 
-      // colored circle badge
-      ctx.fillStyle = badgeColor(pct);
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, 0, Math.PI * 2);
-      ctx.fill();
+  // Filled arc (clockwise from top)
+  if (pct > 0) {
+    const start = -Math.PI / 2;
+    const end   = start + (Math.min(pct, 100) / 100) * Math.PI * 2;
+    ctx.strokeStyle = arcColor(pct);
+    ctx.lineWidth = lw;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, start, end);
+    ctx.stroke();
+  }
 
-      // white border
-      ctx.strokeStyle = "rgba(255,255,255,0.9)";
-      ctx.lineWidth = 2.5;
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, 0, Math.PI * 2);
-      ctx.stroke();
-
-      // percentage text
-      const fontSize = text.length > 2 ? 17 : 20;
-      ctx.font = `bold ${fontSize}px -apple-system, BlinkMacSystemFont, sans-serif`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillStyle = "#ffffff";
-      ctx.fillText(text, cx, cy + 1);
-    }
+  // Percentage text in center
+  const label = pct > 0 ? `${pct}%` : "";
+  if (label) {
+    const fontSize = label.length > 3 ? 26 : 30;
+    ctx.font = `bold ${fontSize}px -apple-system, BlinkMacSystemFont, sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = arcColor(pct);
+    ctx.fillText(label, cx, cy + 1);
   }
 
   const imageData = ctx.getImageData(0, 0, size, size);
-  chrome.action.setIcon({ imageData: { 96: imageData } });
+  chrome.action.setIcon({ imageData: { 128: imageData } });
 }
 
 async function appendHistory(data) {
