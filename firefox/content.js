@@ -130,21 +130,65 @@
     const d7pct = d.seven_day?.utilization ?? 0;
     const c5 = color(h5pct), c7 = color(d7pct);
 
+    // Credit mode detection
+    const creditEnabled = d.spend?.enabled === true || d.extra_usage?.is_enabled === true;
+    const creditUsed    = d.extra_usage?.used_credits ?? d.spend?.used?.amount_minor ?? 0;
+    const creditDecimal = d.extra_usage?.decimal_places ?? d.spend?.used?.exponent ?? 2;
+    const creditLimit   = d.extra_usage?.monthly_limit ?? d.spend?.limit?.amount_minor ?? null;
+    const inCreditMode  = creditEnabled && h5pct >= 100;
+
     const dot   = document.getElementById("cug-5h-dot");
     const p5    = document.getElementById("cug-5h-pct");
     const fill  = document.getElementById("cug-5h-fill");
     const rst5  = document.getElementById("cug-5h-rst");
     const p7    = document.getElementById("cug-7d-pct");
     const rst7  = document.getElementById("cug-7d-rst");
+    const cBar  = document.getElementById("cug-credit-bar");
+    const cFill = document.getElementById("cug-credit-fill");
 
-    if (dot)  dot.style.background = c5;
-    if (p5)   { p5.textContent = `${Math.round(h5pct)}%`; p5.style.color = c5; }
+    if (dot) {
+      dot.style.background = (creditEnabled && !inCreditMode) ? "#3b82f6" : c5;
+    }
+    if (p5) {
+      if (inCreditMode && creditUsed > 0) {
+        const amt = creditUsed / Math.pow(10, creditDecimal);
+        p5.textContent = `$${amt.toFixed(2)}`;
+        p5.classList.add("cug-5h-pct--credit");
+      } else {
+        p5.textContent = `${Math.round(h5pct)}%`;
+        p5.style.color = c5;
+        p5.classList.remove("cug-5h-pct--credit");
+      }
+    }
     if (fill) {
-      fill.style.width = `${Math.min(100, h5pct)}%`;
-      fill.style.background = c5;
-      fill.classList.toggle("cug-fill--critical", h5pct >= 90);
+      if (inCreditMode) {
+        fill.style.width = "100%";
+        fill.classList.add("cug-fill--credit");
+        fill.classList.remove("cug-fill--critical");
+      } else {
+        fill.style.width = `${Math.min(100, h5pct)}%`;
+        fill.style.background = c5;
+        fill.classList.remove("cug-fill--credit");
+        fill.classList.toggle("cug-fill--critical", h5pct >= 90);
+      }
     }
     if (rst5) rst5.textContent = formatReset(d.five_hour?.resets_at);
+
+    // Credit bar: show remaining credits ratio below main bar
+    if (cBar && cFill) {
+      if (inCreditMode && creditLimit && creditUsed < creditLimit) {
+        const remaining = creditLimit - creditUsed;
+        const pct = Math.round((remaining / creditLimit) * 100);
+        cFill.style.width = `${pct}%`;
+        cBar.classList.add("visible");
+      } else if (inCreditMode && creditUsed > 0) {
+        cFill.style.width = "30%";
+        cBar.classList.add("visible");
+      } else {
+        cBar.classList.remove("visible");
+      }
+    }
+
     if (p7)   { p7.textContent = `${Math.round(d7pct)}%`; p7.style.color = c7; }
     if (rst7) rst7.textContent = formatReset(d.seven_day?.resets_at);
   }

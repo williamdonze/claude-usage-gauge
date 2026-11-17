@@ -115,3 +115,28 @@
 .cug-fill--critical {
   animation: cug-pulse 1.4s ease-in-out infinite;
 }
+
+/* ── Credit mode (extra usage enabled or in overflow) ── */
+.cug-fill--credit {
+  background: #3b82f6 !important;
+  animation: none !important;
+}
+
+.cug-credit-bar {
+  height: 4px;
+  border-radius: 999px;
+  margin-top: 3px;
+  overflow: hidden;
+  background: rgba(59,130,246,0.15);
+  display: none;
+}
+.cug-credit-bar.visible { display: block; }
+.cug-credit-fill {
+  height: 100%;
+  background: #3b82f6;
+  border-radius: 999px;
+  width: 0%;
+  transition: width 0.9s cubic-bezier(0.16,1,0.3,1);
+}
+
+.cug-5h-pct--credit { color: #3b82f6 !important; }
