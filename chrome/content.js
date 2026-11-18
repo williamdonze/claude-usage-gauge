@@ -68,9 +68,6 @@
     return "↻ " + T.resetIn(d, h, m);
   }
 
-  let cugSettings = { orangeAt: 50, redAt: 75 };
-  chrome.storage.local.get("cugSettings", (r) => { if (r.cugSettings) cugSettings = { ...cugSettings, ...r.cugSettings }; });
-
   function formatMoney(amountMinor, decimalPlaces) {
     const val = amountMinor / Math.pow(10, decimalPlaces ?? 2);
     return "$" + val.toFixed(2);
@@ -78,10 +75,8 @@
 
   function color(pct) {
     if (pct == null) return "#9ca3af";
-    const o = cugSettings.orangeAt ?? 50;
-    const r = cugSettings.redAt ?? 75;
-    if (pct < o) return "#16a34a";
-    if (pct < r) return "#d97706";
+    if (pct < 50) return "#16a34a";
+    if (pct < 75) return "#d97706";
     return "#dc2626";
   }
 
@@ -304,14 +299,6 @@
       }
     }, 500);
   }
-
-  // Storage listener — fires immediately in both Chrome and Firefox when popup saves settings
-  chrome.storage.onChanged.addListener((changes) => {
-    if (changes.cugSettings?.newValue) {
-      cugSettings = { ...cugSettings, ...changes.cugSettings.newValue };
-      if (lastData) applyData(lastData);
-    }
-  });
 
   chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     if (msg.type === "RENDER_NOW" && msg.data) { applyData(msg.data); return; }
