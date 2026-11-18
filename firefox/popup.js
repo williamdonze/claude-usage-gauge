@@ -122,10 +122,6 @@ function getLang() {
 
 const T = getLang();
 
-// Thresholds — loaded from storage, defaults shown
-let cugSettings = { orangeAt: 50, redAt: 75 };
-
-// Arc circumference for r=15
 const ARC_CIRC = 2 * Math.PI * 15; // ≈ 94.25
 
 function applyStaticText() {
@@ -151,10 +147,8 @@ function formatResetIn(isoDate) {
 
 function getColor(pct) {
   if (pct == null) return "#6b7280";
-  const o = cugSettings.orangeAt ?? 50;
-  const r = cugSettings.redAt ?? 75;
-  if (pct < o) return "#16a34a";
-  if (pct < r) return "#d97706";
+  if (pct < 50) return "#16a34a";
+  if (pct < 75) return "#d97706";
   return "#dc2626";
 }
 
@@ -165,16 +159,6 @@ function formatAmountMinor(amount_minor, exponent, currency) {
     return new Intl.NumberFormat("en-US", { style: "currency", currency: currency || "USD", minimumFractionDigits: 2 }).format(amount);
   } catch(e) { return `$${amount.toFixed(2)}`; }
 }
-
-// Colors per product key for breakdown bars
-const PRODUCT_COLORS = {
-  claude_code: "#7c3aed",
-  cowork:      "#3b82f6",
-  chat:        "#d77757",
-  api:         "#0ea5e9",
-  other:       "#6b7280",
-};
-function productColor(key) { return PRODUCT_COLORS[key] || "#d77757"; }
 
 function renderBreakdown(data) {
   const sec = document.getElementById("section-breakdown");
@@ -188,16 +172,15 @@ function renderBreakdown(data) {
 
   rowsEl.innerHTML = "";
   for (const row of rows) {
-    const color = productColor(row.key);
     const div = document.createElement("div");
     div.className = "breakdown-row";
     div.innerHTML =
       `<div class="bd-row-top">` +
         `<div class="bd-left">` +
-          `<span class="bd-dot" style="background:${color}"></span>` +
+          `<span class="bd-dot"></span>` +
           `<span class="breakdown-name">${row.display_name}</span>` +
         `</div>` +
-        `<span class="breakdown-val" style="color:${color}">${row.percent}%</span>` +
+        `<span class="breakdown-val">${row.percent}%</span>` +
       `</div>` +
       `<div class="bd-mini-track">` +
         `<div class="bd-mini-fill" style="width:0%" data-pct="${row.percent}"></div>` +
@@ -277,6 +260,8 @@ function render(data) {
 
     renderBreakdown(data);
     renderCredits(data);
+    // Keep toolbar icon in sync with current data
+    chrome.runtime.sendMessage({ type: "REFRESH_ICON" }).catch(() => {});
   } else {
     document.getElementById("p-nodata").style.display = "block";
     document.getElementById("section-breakdown").style.display = "none";
@@ -320,107 +305,6 @@ async function refresh() {
   render(cached?.data || null);
 }
 
-function sliderFill(el, color) {
-  const pct = ((el.value - el.min) / (el.max - el.min)) * 100;
-  const track = getComputedStyle(document.documentElement).getPropertyValue("--subtle").trim() || "rgba(0,0,0,0.08)";
-  el.style.background = `linear-gradient(to right,${color} ${pct}%,${track} ${pct}%)`;
-}
-
-function applySettingsUI() {
-  const slO = document.getElementById("sl-orange");
-  const slR = document.getElementById("sl-red");
-  slO.value = cugSettings.orangeAt;
-  slR.value = cugSettings.redAt;
-  document.getElementById("num-orange").value = cugSettings.orangeAt;
-  document.getElementById("num-red").value    = cugSettings.redAt;
-  sliderFill(slO, "#d97706");
-  sliderFill(slR, "#dc2626");
-}
-
-let _lastData = null;
-
-// Lightweight color-only update — no width animation, no re-fetch
-function recolorAll() {
-  if (!_lastData) return;
-  const d = _lastData;
-  const pct5h = d.five_hour?.utilization ?? 0;
-  const pct7d = d.seven_day?.utilization ?? 0;
-  const c5 = getColor(pct5h);
-  const c7 = getColor(pct7d);
-
-  // Arc gauge in header
-  const arcFill = document.getElementById("hdr-arc-fill");
-  if (arcFill) arcFill.style.stroke = c5;
-
-  // 5h card
-  const v5 = document.getElementById("p-5h-val");
-  if (v5) v5.style.color = c5;
-  const f5 = document.getElementById("p-5h-fill");
-  if (f5) f5.style.background = c5;
-
-  // 7d card
-  const v7 = document.getElementById("p-7d-val");
-  if (v7) v7.style.color = c7;
-  const f7 = document.getElementById("p-7d-fill");
-  if (f7) f7.style.background = c7;
-}
-
-function saveSettings() {
-  chrome.storage.local.set({ cugSettings });
-  chrome.runtime.sendMessage({ type: "REFRESH_ICON", settings: cugSettings }).catch(() => {});
-  recolorAll();
-}
-
-function wireSettingsPanel() {
-  const btn   = document.getElementById("btn-gear");
-  const panel = document.getElementById("settings-panel");
-  const main  = document.getElementById("main");
-
-  btn.addEventListener("click", () => {
-    const open = panel.classList.toggle("open");
-    btn.classList.toggle("active", open);
-    document.body.classList.toggle("settings-open", open);
-    if (open) {
-      main.dataset.wasVisible = main.style.display !== "none" ? "1" : "";
-      main.style.display = "none";
-    } else {
-      main.style.display = main.dataset.wasVisible === "1" ? "block" : "none";
-    }
-  });
-
-  const slO  = document.getElementById("sl-orange");
-  const slR  = document.getElementById("sl-red");
-  const numO = document.getElementById("num-orange");
-  const numR = document.getElementById("num-red");
-
-  function setOrange(v) {
-    v = Math.max(10, Math.min(v, cugSettings.redAt - 5));
-    cugSettings.orangeAt = v;
-    slO.value  = v; numO.value = v;
-    sliderFill(slO, "#d97706");
-    saveSettings();
-  }
-  function setRed(v) {
-    v = Math.max(cugSettings.orangeAt + 5, Math.min(v, 100));
-    cugSettings.redAt = v;
-    slR.value  = v; numR.value = v;
-    sliderFill(slR, "#dc2626");
-    saveSettings();
-  }
-
-  slO.addEventListener("input",  () => setOrange(parseInt(slO.value)));
-  numO.addEventListener("change", () => setOrange(parseInt(numO.value) || cugSettings.orangeAt));
-  slR.addEventListener("input",  () => setRed(parseInt(slR.value)));
-  numR.addEventListener("change", () => setRed(parseInt(numR.value) || cugSettings.redAt));
-}
-
 applyStaticText();
 document.getElementById("btn-refresh").addEventListener("click", refresh);
-wireSettingsPanel();
-
-// Load settings then data
-chrome.storage.local.get("cugSettings", (result) => {
-  if (result.cugSettings) cugSettings = { ...cugSettings, ...result.cugSettings };
-  applySettingsUI();
-  load();
-});
+load();

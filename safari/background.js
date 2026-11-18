@@ -1,24 +1,19 @@
-// background.js — Chrome MV3
+// background.js — Chrome MV3 / Firefox MV2
 
 const MAX_HISTORY = 24;
+const action = chrome.action || chrome.browserAction;
 
-function arcColor(pct, settings) {
-  const o = settings?.orangeAt ?? 50;
-  const r = settings?.redAt ?? 75;
-  if (pct < o) return "#16a34a";
-  if (pct < r) return "#d97706";
+function arcColor(pct) {
+  if (pct < 50) return "#16a34a";
+  if (pct < 75) return "#d97706";
   return "#dc2626";
 }
 
-async function updateIcon(data, cugSettings) {
+async function updateIcon(data) {
   const size = 128;
   const canvas = new OffscreenCanvas(size, size);
   const ctx = canvas.getContext("2d");
 
-  if (!cugSettings) {
-    const r = await chrome.storage.local.get("cugSettings");
-    cugSettings = r.cugSettings;
-  }
   const pct = data ? Math.round(data.five_hour?.utilization ?? 0) : 0;
   const cx = size / 2, cy = size / 2;
   const r = 55, lw = 22;   // large ring, nearly fills the icon
@@ -35,7 +30,7 @@ async function updateIcon(data, cugSettings) {
   if (pct > 0) {
     const start = -Math.PI / 2;
     const end   = start + (Math.min(pct, 100) / 100) * Math.PI * 2;
-    ctx.strokeStyle = arcColor(pct, cugSettings);
+    ctx.strokeStyle = arcColor(pct);
     ctx.lineWidth = lw;
     ctx.lineCap = "round";
     ctx.beginPath();
@@ -46,14 +41,13 @@ async function updateIcon(data, cugSettings) {
   // No text in center — ring only
 
   const imageData = ctx.getImageData(0, 0, size, size);
-  chrome.action.setIcon({ imageData: { 128: imageData } });
+  action.setIcon({ imageData: { 128: imageData } });
 
-  // Tooltip on hover
   const d7pct = data ? Math.round(data.seven_day?.utilization ?? 0) : 0;
   const title = pct > 0
     ? `Claude Usage\n5h session: ${pct}%\n7-day: ${d7pct}%`
     : "Claude Usage Tracker";
-  chrome.action.setTitle({ title });
+  action.setTitle({ title });
 }
 
 async function appendHistory(data) {
@@ -110,14 +104,9 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     return true;
   }
   if (msg.type === "REFRESH_ICON") {
-    chrome.storage.local.get(["usageData", "cugSettings"], (r) => {
-      // Use settings from message if provided (avoids storage write race)
-      if (msg.settings) r.cugSettings = msg.settings;
-      updateIcon(r.usageData || null, r.cugSettings);
-    });
+    chrome.storage.local.get("usageData", (r) => updateIcon(r.usageData || null));
     return false;
   }
 });
 
-// Restore icon on startup
 chrome.storage.local.get("usageData", ({ usageData }) => updateIcon(usageData || null));
