@@ -222,11 +222,8 @@ function renderCredits(data) {
 }
 
 function render(data) {
-  _lastData = data;
   document.getElementById("loading").style.display = "none";
-  if (!document.getElementById("settings-panel").classList.contains("open")) {
-    document.getElementById("main").style.display = "block";
-  }
+  document.getElementById("main").style.display = "block";
 
   function fillRow(prefix, utilization, resetsAt) {
     const pct = utilization ?? 0;
