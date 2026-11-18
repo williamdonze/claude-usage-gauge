@@ -2,84 +2,116 @@
 
 const TRANSLATIONS = {
   fr: {
-    subtitle:   "Données temps réel",
-    loading:    "Chargement…",
-    label5h:    "⏱ Session 5h",
-    label7d:    "📅 7 jours",
-    nodata:     "Ouvrez claude.ai pour charger les données",
-    refresh:    "↻ Actualiser",
-    reset:      "reset imminent",
-    resetIn:    (d, h, m) => d > 0 ? (h > 0 ? `${d}j ${h}h` : `${d}j`) : h > 0 ? `${h}h ${String(m).padStart(2,"0")}m` : `${m}m`,
+    subtitle:    "Données temps réel",
+    loading:     "Chargement…",
+    label5h:     "⏱ Session 5h",
+    label7d:     "📅 7 jours",
+    nodata:      "Ouvrez claude.ai pour charger les données",
+    refresh:     "↻ Actualiser",
+    reset:       "reset imminent",
+    resetIn:     (d, h, m) => d > 0 ? (h > 0 ? `${d}j ${h}h` : `${d}j`) : h > 0 ? `${h}h ${String(m).padStart(2,"0")}m` : `${m}m`,
+    breakdown:   "Répartition 7 jours",
+    extraCred:   "Crédits extra actifs",
+    creditsUsed: "Crédits utilisés",
+    thisMonth:   "ce mois-ci",
   },
   en: {
-    subtitle:   "Real-time data",
-    loading:    "Loading…",
-    label5h:    "⏱ 5h session",
-    label7d:    "📅 7 days",
-    nodata:     "Open claude.ai to load data",
-    refresh:    "↻ Refresh",
-    reset:      "resetting soon",
-    resetIn:    (d, h, m) => d > 0 ? (h > 0 ? `${d}d ${h}h` : `${d}d`) : h > 0 ? `${h}h ${String(m).padStart(2,"0")}m` : `${m}m`,
+    subtitle:    "Real-time data",
+    loading:     "Loading…",
+    label5h:     "⏱ 5h session",
+    label7d:     "📅 7 days",
+    nodata:      "Open claude.ai to load data",
+    refresh:     "↻ Refresh",
+    reset:       "resetting soon",
+    resetIn:     (d, h, m) => d > 0 ? (h > 0 ? `${d}d ${h}h` : `${d}d`) : h > 0 ? `${h}h ${String(m).padStart(2,"0")}m` : `${m}m`,
+    breakdown:   "7-day breakdown",
+    extraCred:   "Extra credits active",
+    creditsUsed: "Credits used",
+    thisMonth:   "this month",
   },
   es: {
-    subtitle:   "Datos en tiempo real",
-    loading:    "Cargando…",
-    label5h:    "⏱ Sesión 5h",
-    label7d:    "📅 7 días",
-    nodata:     "Abre claude.ai para cargar los datos",
-    refresh:    "↻ Actualizar",
-    reset:      "reinicio inminente",
-    resetIn:    (d, h, m) => d > 0 ? (h > 0 ? `${d}d ${h}h` : `${d}d`) : h > 0 ? `${h}h ${String(m).padStart(2,"0")}m` : `${m}m`,
+    subtitle:    "Datos en tiempo real",
+    loading:     "Cargando…",
+    label5h:     "⏱ Sesión 5h",
+    label7d:     "📅 7 días",
+    nodata:      "Abre claude.ai para cargar los datos",
+    refresh:     "↻ Actualizar",
+    reset:       "reinicio inminente",
+    resetIn:     (d, h, m) => d > 0 ? (h > 0 ? `${d}d ${h}h` : `${d}d`) : h > 0 ? `${h}h ${String(m).padStart(2,"0")}m` : `${m}m`,
+    breakdown:   "Desglose 7 días",
+    extraCred:   "Créditos extra activos",
+    creditsUsed: "Créditos usados",
+    thisMonth:   "este mes",
   },
   de: {
-    subtitle:   "Echtzeit-Daten",
-    loading:    "Laden…",
-    label5h:    "⏱ 5h-Sitzung",
-    label7d:    "📅 7 Tage",
-    nodata:     "Öffne claude.ai um Daten zu laden",
-    refresh:    "↻ Aktualisieren",
-    reset:      "Reset bald",
-    resetIn:    (d, h, m) => d > 0 ? (h > 0 ? `${d}T ${h}h` : `${d}T`) : h > 0 ? `${h}h ${String(m).padStart(2,"0")}m` : `${m}m`,
+    subtitle:    "Echtzeit-Daten",
+    loading:     "Laden…",
+    label5h:     "⏱ 5h-Sitzung",
+    label7d:     "📅 7 Tage",
+    nodata:      "Öffne claude.ai um Daten zu laden",
+    refresh:     "↻ Aktualisieren",
+    reset:       "Reset bald",
+    resetIn:     (d, h, m) => d > 0 ? (h > 0 ? `${d}T ${h}h` : `${d}T`) : h > 0 ? `${h}h ${String(m).padStart(2,"0")}m` : `${m}m`,
+    breakdown:   "7-Tage-Aufschlüsselung",
+    extraCred:   "Extra-Credits aktiv",
+    creditsUsed: "Verbrauchte Credits",
+    thisMonth:   "diesen Monat",
   },
   pt: {
-    subtitle:   "Dados em tempo real",
-    loading:    "Carregando…",
-    label5h:    "⏱ Sessão 5h",
-    label7d:    "📅 7 dias",
-    nodata:     "Abra claude.ai para carregar os dados",
-    refresh:    "↻ Atualizar",
-    reset:      "reset iminente",
-    resetIn:    (d, h, m) => d > 0 ? (h > 0 ? `${d}d ${h}h` : `${d}d`) : h > 0 ? `${h}h ${String(m).padStart(2,"0")}m` : `${m}m`,
+    subtitle:    "Dados em tempo real",
+    loading:     "Carregando…",
+    label5h:     "⏱ Sessão 5h",
+    label7d:     "📅 7 dias",
+    nodata:      "Abra claude.ai para carregar os dados",
+    refresh:     "↻ Atualizar",
+    reset:       "reset iminente",
+    resetIn:     (d, h, m) => d > 0 ? (h > 0 ? `${d}d ${h}h` : `${d}d`) : h > 0 ? `${h}h ${String(m).padStart(2,"0")}m` : `${m}m`,
+    breakdown:   "Divisão 7 dias",
+    extraCred:   "Créditos extras ativos",
+    creditsUsed: "Créditos usados",
+    thisMonth:   "este mês",
   },
   ja: {
-    subtitle:   "リアルタイムデータ",
-    loading:    "読み込み中…",
-    label5h:    "⏱ 5時間セッション",
-    label7d:    "📅 7日間",
-    nodata:     "claude.aiを開いてデータを読み込んでください",
-    refresh:    "↻ 更新",
-    reset:      "まもなくリセット",
-    resetIn:    (d, h, m) => d > 0 ? (h > 0 ? `${d}日${h}時間` : `${d}日`) : h > 0 ? `${h}時間${String(m).padStart(2,"0")}分` : `${m}分`,
+    subtitle:    "リアルタイムデータ",
+    loading:     "読み込み中…",
+    label5h:     "⏱ 5時間セッション",
+    label7d:     "📅 7日間",
+    nodata:      "claude.aiを開いてデータを読み込んでください",
+    refresh:     "↻ 更新",
+    reset:       "まもなくリセット",
+    resetIn:     (d, h, m) => d > 0 ? (h > 0 ? `${d}日${h}時間` : `${d}日`) : h > 0 ? `${h}時間${String(m).padStart(2,"0")}分` : `${m}分`,
+    breakdown:   "7日間の内訳",
+    extraCred:   "追加クレジット有効",
+    creditsUsed: "使用済みクレジット",
+    thisMonth:   "今月",
   },
   zh: {
-    subtitle:   "实时数据",
-    loading:    "加载中…",
-    label5h:    "⏱ 5小时会话",
-    label7d:    "📅 7天",
-    nodata:     "请打开 claude.ai 以加载数据",
-    refresh:    "↻ 刷新",
-    reset:      "即将重置",
-    resetIn:    (d, h, m) => d > 0 ? (h > 0 ? `${d}天${h}小时` : `${d}天`) : h > 0 ? `${h}小时${String(m).padStart(2,"0")}分` : `${m}分`,
+    subtitle:    "实时数据",
+    loading:     "加载中…",
+    label5h:     "⏱ 5小时会话",
+    label7d:     "📅 7天",
+    nodata:      "请打开 claude.ai 以加载数据",
+    refresh:     "↻ 刷新",
+    reset:       "即将重置",
+    resetIn:     (d, h, m) => d > 0 ? (h > 0 ? `${d}天${h}小时` : `${d}天`) : h > 0 ? `${h}小时${String(m).padStart(2,"0")}分` : `${m}分`,
+    breakdown:   "7天细分",
+    extraCred:   "额外积分激活",
+    creditsUsed: "已用积分",
+    thisMonth:   "本月",
   },
   ko: {
-    subtitle:   "실시간 데이터",
-    loading:    "로딩 중…",
-    label5h:    "⏱ 5시간 세션",
-    label7d:    "📅 7일",
-    nodata:     "데이터를 불러오려면 claude.ai를 여세요",
-    refresh:    "↻ 새로고침",
-    reset:      "곧 초기화",
-    resetIn:    (d, h, m) => d > 0 ? (h > 0 ? `${d}일 ${h}시간` : `${d}일`) : h > 0 ? `${h}시간 ${String(m).padStart(2,"0")}분` : `${m}분`,
+    subtitle:    "실시간 데이터",
+    loading:     "로딩 중…",
+    label5h:     "⏱ 5시간 세션",
+    label7d:     "📅 7일",
+    nodata:      "데이터를 불러오려면 claude.ai를 여세요",
+    refresh:     "↻ 새로고침",
+    reset:       "곧 초기화",
+    resetIn:     (d, h, m) => d > 0 ? (h > 0 ? `${d}일 ${h}시간` : `${d}일`) : h > 0 ? `${h}시간 ${String(m).padStart(2,"0")}분` : `${m}분`,
+    breakdown:   "7일 세부 분석",
+    extraCred:   "추가 크레딧 활성",
+    creditsUsed: "사용된 크레딧",
+    thisMonth:   "이번 달",
   },
 };
 
@@ -90,6 +122,12 @@ function getLang() {
 
 const T = getLang();
 
+// Thresholds — loaded from storage, defaults shown
+let cugSettings = { orangeAt: 50, redAt: 75 };
+
+// Arc circumference for r=15
+const ARC_CIRC = 2 * Math.PI * 15; // ≈ 94.25
+
 function applyStaticText() {
   document.getElementById("p-subtitle").textContent  = T.subtitle;
   document.getElementById("loading").textContent      = T.loading;
@@ -97,6 +135,7 @@ function applyStaticText() {
   document.getElementById("p-7d-label").textContent   = T.label7d;
   document.getElementById("p-nodata").textContent     = T.nodata;
   document.getElementById("btn-refresh").textContent  = T.refresh;
+  document.getElementById("bd-title").textContent     = T.breakdown;
 }
 
 function formatResetIn(isoDate) {
@@ -112,15 +151,95 @@ function formatResetIn(isoDate) {
 
 function getColor(pct) {
   if (pct == null) return "#6b7280";
-  if (pct < 50)  return "#16a34a";
-  if (pct < 75)  return "#d97706";
-  if (pct < 90)  return "#ea580c";
+  const o = cugSettings.orangeAt ?? 50;
+  const r = cugSettings.redAt ?? 75;
+  if (pct < o) return "#16a34a";
+  if (pct < r) return "#d97706";
   return "#dc2626";
 }
 
+function formatAmountMinor(amount_minor, exponent, currency) {
+  if (amount_minor == null) return null;
+  const amount = amount_minor / Math.pow(10, exponent ?? 2);
+  try {
+    return new Intl.NumberFormat("en-US", { style: "currency", currency: currency || "USD", minimumFractionDigits: 2 }).format(amount);
+  } catch(e) { return `$${amount.toFixed(2)}`; }
+}
+
+// Colors per product key for breakdown bars
+const PRODUCT_COLORS = {
+  claude_code: "#7c3aed",
+  cowork:      "#3b82f6",
+  chat:        "#d77757",
+  api:         "#0ea5e9",
+  other:       "#6b7280",
+};
+function productColor(key) { return PRODUCT_COLORS[key] || "#d77757"; }
+
+function renderBreakdown(data) {
+  const sec = document.getElementById("section-breakdown");
+  const rowsEl = document.getElementById("bd-rows");
+
+  const bd = data.seven_day_breakdown;
+  if (!bd?.rows?.length) { sec.style.display = "none"; return; }
+
+  const rows = bd.rows.filter(r => r.percent > 0).sort((a, b) => b.percent - a.percent);
+  if (!rows.length) { sec.style.display = "none"; return; }
+
+  rowsEl.innerHTML = "";
+  for (const row of rows) {
+    const color = productColor(row.key);
+    const div = document.createElement("div");
+    div.className = "breakdown-row";
+    div.innerHTML =
+      `<div class="bd-row-top">` +
+        `<div class="bd-left">` +
+          `<span class="bd-dot" style="background:${color}"></span>` +
+          `<span class="breakdown-name">${row.display_name}</span>` +
+        `</div>` +
+        `<span class="breakdown-val" style="color:${color}">${row.percent}%</span>` +
+      `</div>` +
+      `<div class="bd-mini-track">` +
+        `<div class="bd-mini-fill" style="width:0%" data-pct="${row.percent}"></div>` +
+      `</div>`;
+    rowsEl.appendChild(div);
+  }
+  // Animate bars after paint
+  requestAnimationFrame(() => {
+    rowsEl.querySelectorAll(".bd-mini-fill").forEach(el => {
+      el.style.width = el.dataset.pct + "%";
+    });
+  });
+  sec.style.display = "block";
+}
+
+function renderCredits(data) {
+  const sec = document.getElementById("section-credits");
+  const spend = data.spend;
+  const eu    = data.extra_usage;
+
+  const usedMinor = spend?.used?.amount_minor ?? eu?.used_credits ?? null;
+  if (!usedMinor) { sec.style.display = "none"; return; }
+
+  const exponent = spend?.used?.exponent ?? eu?.decimal_places ?? 2;
+  const currency = spend?.used?.currency ?? eu?.currency ?? "USD";
+  const formatted = formatAmountMinor(usedMinor, exponent, currency);
+  if (!formatted) { sec.style.display = "none"; return; }
+
+  const isEnabled = spend?.enabled === true || eu?.is_enabled === true;
+  document.getElementById("cred-label").textContent = isEnabled ? T.extraCred : T.creditsUsed;
+  document.getElementById("cred-sub").textContent = T.thisMonth;
+  document.getElementById("cred-val").textContent = formatted;
+  document.getElementById("cred-val").style.color = isEnabled ? "#3b82f6" : "var(--muted)";
+  sec.style.display = "block";
+}
+
 function render(data) {
+  _lastData = data;
   document.getElementById("loading").style.display = "none";
-  document.getElementById("main").style.display = "block";
+  if (!document.getElementById("settings-panel").classList.contains("open")) {
+    document.getElementById("main").style.display = "block";
+  }
 
   function fillRow(prefix, utilization, resetsAt) {
     const pct = utilization ?? 0;
@@ -129,126 +248,179 @@ function render(data) {
     document.getElementById(`p-${prefix}-val`).style.color = color;
     document.getElementById(`p-${prefix}-reset`).textContent = formatResetIn(resetsAt);
     const fill = document.getElementById(`p-${prefix}-fill`);
-    fill.style.width = `${Math.min(100, pct)}%`;
+    fill.style.transition = "none";
+    fill.style.width = "0%";
     fill.style.background = color;
+    requestAnimationFrame(() => {
+      fill.style.transition = "width 0.9s cubic-bezier(0.16,1,0.3,1), background 0.4s";
+      fill.style.width = `${Math.min(100, pct)}%`;
+    });
   }
 
   if (data) {
     fillRow("5h", data.five_hour?.utilization, data.five_hour?.resets_at);
     fillRow("7d", data.seven_day?.utilization, data.seven_day?.resets_at);
     document.getElementById("p-nodata").style.display = "none";
+
+    // Live arc gauge in header — set color instantly, then animate fill
+    const pct5h = data.five_hour?.utilization ?? 0;
+    const arcFill = document.getElementById("hdr-arc-fill");
+    if (arcFill) {
+      arcFill.style.transition = "none";
+      arcFill.style.stroke = getColor(pct5h);
+      arcFill.style.strokeDashoffset = ARC_CIRC;
+      requestAnimationFrame(() => {
+        arcFill.style.transition = "stroke-dashoffset 0.9s cubic-bezier(0.16,1,0.3,1)";
+        arcFill.style.strokeDashoffset = ARC_CIRC * (1 - Math.min(100, pct5h) / 100);
+      });
+    }
+
+    renderBreakdown(data);
+    renderCredits(data);
   } else {
     document.getElementById("p-nodata").style.display = "block";
+    document.getElementById("section-breakdown").style.display = "none";
+    document.getElementById("section-credits").style.display = "none";
   }
-}
-
-function fetchViaTab(tabId) {
-  return new Promise((resolve) => {
-    browser.scripting.executeScript({
-      target: { tabId },
-      func: async () => {
-        try {
-          const orgsRes = await fetch("/api/organizations", { credentials: "include" });
-          const orgs = await orgsRes.json();
-          const id = orgs?.[0]?.uuid || orgs?.[0]?.id;
-          if (!id) return null;
-          const res = await fetch(`/api/organizations/${id}/usage`, { credentials: "include" });
-          return res.ok ? await res.json() : null;
-        } catch(e) { return null; }
-      }
-    }, (results) => resolve(results?.[0]?.result || null));
-  });
 }
 
 async function load() {
   document.getElementById("loading").style.display = "block";
   document.getElementById("main").style.display = "none";
 
-  // 1. Cache du background (inclut l'historique)
-  const cached = await new Promise((r) => browser.runtime.sendMessage({ type: "GET_DATA" }, r));
-  if (cached?.history?.length) renderSparkline(cached.history);
+  // Try cached data first
+  const cached = await new Promise((r) => chrome.runtime.sendMessage({ type: "GET_DATA" }, r));
   if (cached?.data) { render(cached.data); return; }
 
-  // 2. N'importe quel onglet claude.ai ouvert
-  const tabs = await new Promise((r) => browser.tabs.query({ url: "*://claude.ai/*" }, r));
+  // No cache: ask content script in open tab
+  const tabs = await new Promise((r) => chrome.tabs.query({ url: "*://claude.ai/*" }, r));
   if (tabs.length > 0) {
-    const data = await fetchViaTab(tabs[0].id);
-    if (data) {
-      browser.runtime.sendMessage({ type: "STORE_DATA", data });
-      render(data);
-      return;
-    }
+    const data = await new Promise((r) =>
+      chrome.tabs.sendMessage(tabs[0].id, { type: "FETCH_AND_REPLY" }, (d) => r(d || null))
+    );
+    if (data) { render(data); return; }
   }
 
-  // 3. Fetch depuis le background (pas besoin d'onglet)
-  const result = await new Promise((r) => browser.runtime.sendMessage({ type: "FETCH_NOW" }, r));
-  render(result?.data || null);
+  render(null);
 }
 
 async function refresh() {
   document.getElementById("loading").style.display = "block";
   document.getElementById("main").style.display = "none";
 
-  // Fetch frais, skip cache
-  let data = null;
-  const tabs = await new Promise((r) => browser.tabs.query({ url: "*://claude.ai/*" }, r));
-  if (tabs.length > 0) data = await fetchViaTab(tabs[0].id);
-  if (!data) {
-    const result = await new Promise((r) => browser.runtime.sendMessage({ type: "FETCH_NOW" }, r));
-    data = result?.data || null;
+  const tabs = await new Promise((r) => chrome.tabs.query({ url: "*://claude.ai/*" }, r));
+  if (tabs.length > 0) {
+    const data = await new Promise((r) =>
+      chrome.tabs.sendMessage(tabs[0].id, { type: "FETCH_AND_REPLY" }, (d) => r(d || null))
+    );
+    if (data) { render(data); return; }
   }
-  if (data) {
-    browser.runtime.sendMessage({ type: "STORE_DATA", data });
-    // Notifie tous les onglets claude.ai de re-rendre
-    browser.tabs.query({ url: "*://claude.ai/*" }, (tabs) => {
-      tabs.forEach((t) => browser.tabs.sendMessage(t.id, { type: "RENDER_NOW", data }).catch(() => {}));
-    });
-  }
-  render(data);
+
+  const cached = await new Promise((r) => chrome.runtime.sendMessage({ type: "GET_DATA" }, r));
+  render(cached?.data || null);
 }
 
-function renderSparkline(history) {
-  if (!history || history.length < 2) return;
-  const wrap = document.getElementById("sparkline-wrap");
-  const svg  = document.getElementById("sparkline-svg");
-  if (!wrap || !svg) return;
-  wrap.style.display = "block";
+function sliderFill(el, color) {
+  const pct = ((el.value - el.min) / (el.max - el.min)) * 100;
+  const track = getComputedStyle(document.documentElement).getPropertyValue("--subtle").trim() || "rgba(0,0,0,0.08)";
+  el.style.background = `linear-gradient(to right,${color} ${pct}%,${track} ${pct}%)`;
+}
 
-  const W = 272, H = 44, pad = 2;
-  const n = history.length;
+function applySettingsUI() {
+  const slO = document.getElementById("sl-orange");
+  const slR = document.getElementById("sl-red");
+  slO.value = cugSettings.orangeAt;
+  slR.value = cugSettings.redAt;
+  document.getElementById("num-orange").value = cugSettings.orangeAt;
+  document.getElementById("num-red").value    = cugSettings.redAt;
+  sliderFill(slO, "#d97706");
+  sliderFill(slR, "#dc2626");
+}
 
-  function points(key, color) {
-    const pts = history.map((p, i) => {
-      const x = pad + (i / (n - 1)) * (W - pad * 2);
-      const y = H - pad - (p[key] / 100) * (H - pad * 2);
-      return `${x},${y}`;
-    }).join(" ");
-    const poly = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
-    poly.setAttribute("points", pts);
-    poly.setAttribute("fill", "none");
-    poly.setAttribute("stroke", color);
-    poly.setAttribute("stroke-width", "1.5");
-    poly.setAttribute("stroke-linejoin", "round");
-    poly.setAttribute("stroke-linecap", "round");
-    svg.appendChild(poly);
+let _lastData = null;
 
-    // last point dot
-    const last = history[n - 1];
-    const lx = W - pad;
-    const ly = H - pad - (last[key] / 100) * (H - pad * 2);
-    const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-    dot.setAttribute("cx", lx);
-    dot.setAttribute("cy", ly);
-    dot.setAttribute("r", "2.5");
-    dot.setAttribute("fill", color);
-    svg.appendChild(dot);
+// Lightweight color-only update — no width animation, no re-fetch
+function recolorAll() {
+  if (!_lastData) return;
+  const d = _lastData;
+  const pct5h = d.five_hour?.utilization ?? 0;
+  const pct7d = d.seven_day?.utilization ?? 0;
+  const c5 = getColor(pct5h);
+  const c7 = getColor(pct7d);
+
+  // Arc gauge in header
+  const arcFill = document.getElementById("hdr-arc-fill");
+  if (arcFill) arcFill.style.stroke = c5;
+
+  // 5h card
+  const v5 = document.getElementById("p-5h-val");
+  if (v5) v5.style.color = c5;
+  const f5 = document.getElementById("p-5h-fill");
+  if (f5) f5.style.background = c5;
+
+  // 7d card
+  const v7 = document.getElementById("p-7d-val");
+  if (v7) v7.style.color = c7;
+  const f7 = document.getElementById("p-7d-fill");
+  if (f7) f7.style.background = c7;
+}
+
+function saveSettings() {
+  chrome.storage.local.set({ cugSettings });
+  chrome.runtime.sendMessage({ type: "REFRESH_ICON", settings: cugSettings }).catch(() => {});
+  recolorAll();
+}
+
+function wireSettingsPanel() {
+  const btn   = document.getElementById("btn-gear");
+  const panel = document.getElementById("settings-panel");
+  const main  = document.getElementById("main");
+
+  btn.addEventListener("click", () => {
+    const open = panel.classList.toggle("open");
+    btn.classList.toggle("active", open);
+    document.body.classList.toggle("settings-open", open);
+    if (open) {
+      main.dataset.wasVisible = main.style.display !== "none" ? "1" : "";
+      main.style.display = "none";
+    } else {
+      main.style.display = main.dataset.wasVisible === "1" ? "block" : "none";
+    }
+  });
+
+  const slO  = document.getElementById("sl-orange");
+  const slR  = document.getElementById("sl-red");
+  const numO = document.getElementById("num-orange");
+  const numR = document.getElementById("num-red");
+
+  function setOrange(v) {
+    v = Math.max(10, Math.min(v, cugSettings.redAt - 5));
+    cugSettings.orangeAt = v;
+    slO.value  = v; numO.value = v;
+    sliderFill(slO, "#d97706");
+    saveSettings();
+  }
+  function setRed(v) {
+    v = Math.max(cugSettings.orangeAt + 5, Math.min(v, 100));
+    cugSettings.redAt = v;
+    slR.value  = v; numR.value = v;
+    sliderFill(slR, "#dc2626");
+    saveSettings();
   }
 
-  svg.replaceChildren();
-  points("h5", "#d97706");
-  points("d7", "#6366f1");
+  slO.addEventListener("input",  () => setOrange(parseInt(slO.value)));
+  numO.addEventListener("change", () => setOrange(parseInt(numO.value) || cugSettings.orangeAt));
+  slR.addEventListener("input",  () => setRed(parseInt(slR.value)));
+  numR.addEventListener("change", () => setRed(parseInt(numR.value) || cugSettings.redAt));
 }
 
 applyStaticText();
 document.getElementById("btn-refresh").addEventListener("click", refresh);
-load();
+wireSettingsPanel();
+
+// Load settings then data
+chrome.storage.local.get("cugSettings", (result) => {
+  if (result.cugSettings) cugSettings = { ...cugSettings, ...result.cugSettings };
+  applySettingsUI();
+  load();
+});

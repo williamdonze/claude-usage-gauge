@@ -37,21 +37,21 @@
   }
 
   const TRANSLATIONS = {
-    fr: { session: "5h", week: "7 jours", reset: "reset imminent",
+    fr: { session: "Session 5h", week: "7 jours", reset: "reset imminent",
           resetIn: (d,h,m) => d>0 ? (h>0?`${d}j ${h}h`:`${d}j`) : h>0 ? `${h}h${String(m).padStart(2,"0")}` : `${m}m` },
-    en: { session: "5h", week: "7 days", reset: "resetting soon",
+    en: { session: "Session 5h", week: "7 days", reset: "resetting soon",
           resetIn: (d,h,m) => d>0 ? (h>0?`${d}d ${h}h`:`${d}d`) : h>0 ? `${h}h${String(m).padStart(2,"0")}` : `${m}m` },
-    es: { session: "5h", week: "7 días", reset: "reinicio inminente",
+    es: { session: "Sesión 5h", week: "7 días", reset: "reinicio inminente",
           resetIn: (d,h,m) => d>0 ? (h>0?`${d}d ${h}h`:`${d}d`) : h>0 ? `${h}h${String(m).padStart(2,"0")}` : `${m}m` },
-    de: { session: "5h", week: "7 Tage", reset: "Reset bald",
+    de: { session: "Sitzung 5h", week: "7 Tage", reset: "Reset bald",
           resetIn: (d,h,m) => d>0 ? (h>0?`${d}T ${h}h`:`${d}T`) : h>0 ? `${h}h${String(m).padStart(2,"0")}` : `${m}m` },
-    pt: { session: "5h", week: "7 dias", reset: "reset iminente",
+    pt: { session: "Sessão 5h", week: "7 dias", reset: "reset iminente",
           resetIn: (d,h,m) => d>0 ? (h>0?`${d}d ${h}h`:`${d}d`) : h>0 ? `${h}h${String(m).padStart(2,"0")}` : `${m}m` },
-    ja: { session: "5時間", week: "7日間", reset: "まもなくリセット",
+    ja: { session: "セッション5時間", week: "7日間", reset: "まもなくリセット",
           resetIn: (d,h,m) => d>0 ? (h>0?`${d}日${h}時間`:`${d}日`) : h>0 ? `${h}時間${String(m).padStart(2,"0")}分` : `${m}分` },
-    zh: { session: "5小时", week: "7天", reset: "即将重置",
+    zh: { session: "会话5小时", week: "7天", reset: "即将重置",
           resetIn: (d,h,m) => d>0 ? (h>0?`${d}天${h}小时`:`${d}天`) : h>0 ? `${h}小时${String(m).padStart(2,"0")}分` : `${m}分` },
-    ko: { session: "5시간", week: "7일", reset: "곧 초기화",
+    ko: { session: "세션 5시간", week: "7일", reset: "곧 초기화",
           resetIn: (d,h,m) => d>0 ? (h>0?`${d}일 ${h}시간`:`${d}일`) : h>0 ? `${h}시간${String(m).padStart(2,"0")}분` : `${m}분` },
   };
   const lang = (navigator.language || "en").toLowerCase().split("-")[0];
@@ -68,11 +68,20 @@
     return "↻ " + T.resetIn(d, h, m);
   }
 
+  let cugSettings = { orangeAt: 50, redAt: 75 };
+  chrome.storage.local.get("cugSettings", (r) => { if (r.cugSettings) cugSettings = { ...cugSettings, ...r.cugSettings }; });
+
+  function formatMoney(amountMinor, decimalPlaces) {
+    const val = amountMinor / Math.pow(10, decimalPlaces ?? 2);
+    return "$" + val.toFixed(2);
+  }
+
   function color(pct) {
     if (pct == null) return "#9ca3af";
-    if (pct < 50) return "#16a34a";
-    if (pct < 75) return "#d97706";
-    if (pct < 90) return "#ea580c";
+    const o = cugSettings.orangeAt ?? 50;
+    const r = cugSettings.redAt ?? 75;
+    if (pct < o) return "#16a34a";
+    if (pct < r) return "#d97706";
     return "#dc2626";
   }
 
@@ -84,58 +93,127 @@
   }
   function txt(tag, cls, text) { const e = mk(tag, null, cls); e.textContent = text; return e; }
 
-  function buildCol(prefix, label) {
-    const col = mk("div", null, "cug-col");
-    const top = mk("div", null, "cug-col-top");
-    top.appendChild(txt("span", "cug-label", label));
-    top.appendChild(mk("span", `cug-${prefix}-pct`, "cug-pct"));
-    const track = mk("div", null, "cug-track");
-    track.appendChild(mk("div", `cug-${prefix}-fill`, "cug-fill"));
-    col.appendChild(top);
-    col.appendChild(track);
-    col.appendChild(mk("span", `cug-${prefix}-rst`, "cug-rst"));
-    return col;
-  }
-
   function buildGauge() {
-    const el   = mk("div", "claude-usage-gauge");
-    const cols = mk("div", null, "cug-cols");
-    cols.appendChild(buildCol("5h", T.session));
-    cols.appendChild(mk("div", null, "cug-sep"));
-    cols.appendChild(buildCol("7d", T.week));
-    el.appendChild(cols);
+    const el = mk("div", "claude-usage-gauge");
+
+    // Full-width bar
+    const track = mk("div", null, "cug-track");
+    track.appendChild(mk("div", "cug-5h-fill", "cug-fill"));
+    el.appendChild(track);
+
+    // Info row
+    const row = mk("div", null, "cug-row");
+
+    // Left: ● Session 5h  72%  ↻ 3h41
+    const left = mk("div", null, "cug-left");
+    left.appendChild(mk("span", "cug-5h-dot", "cug-dot-ind"));
+    const lbl5h = txt("span", "cug-label", T.session);
+    lbl5h.id = "cug-5h-lbl";
+    left.appendChild(lbl5h);
+    left.appendChild(mk("span", "cug-5h-pct", "cug-pct"));
+    left.appendChild(mk("span", "cug-5h-rst", "cug-rst"));
+
+    // Right: 7 jours : 13%  ↻ 3d 2h
+    const right = mk("div", null, "cug-right");
+    right.appendChild(txt("span", "cug-label", T.week));
+    right.appendChild(txt("span", "cug-sep-text", " : "));
+    right.appendChild(mk("span", "cug-7d-pct", "cug-pct"));
+    right.appendChild(mk("span", "cug-7d-rst", "cug-rst"));
+
+    row.appendChild(left);
+    row.appendChild(right);
+    el.appendChild(row);
     return el;
   }
 
   let lastData = null;
 
-  function fillCol(prefix, pct, iso) {
-    const c = color(pct);
-    const pctEl  = document.getElementById(`cug-${prefix}-pct`);
-    const fillEl = document.getElementById(`cug-${prefix}-fill`);
-    const rstEl  = document.getElementById(`cug-${prefix}-rst`);
-    if (pctEl)  { pctEl.textContent = `${Math.round(pct)}%`; pctEl.style.color = c; }
-    if (fillEl) {
-      fillEl.style.width = `${Math.min(100, pct)}%`;
-      fillEl.style.background = c;
-      fillEl.classList.toggle("cug-fill--critical", pct >= 90);
-    }
-    if (rstEl)  { rstEl.textContent = formatReset(iso); }
-  }
-
   function applyData(d) {
     lastData = d;
     if (!gaugeEl) return;
-    fillCol("5h", d.five_hour?.utilization ?? 0, d.five_hour?.resets_at);
-    fillCol("7d", d.seven_day?.utilization ?? 0, d.seven_day?.resets_at);
+
+    const h5pct = d.five_hour?.utilization ?? 0;
+    const d7pct = d.seven_day?.utilization ?? 0;
+    const c5 = color(h5pct), c7 = color(d7pct);
+
+    // Credit mode detection
+    const creditEnabled = d.spend?.enabled === true || d.extra_usage?.is_enabled === true;
+    const creditUsed    = d.extra_usage?.used_credits ?? d.spend?.used?.amount_minor ?? 0;
+    const creditDecimal = d.extra_usage?.decimal_places ?? d.spend?.used?.exponent ?? 2;
+    const creditLimit   = d.extra_usage?.monthly_limit ?? d.spend?.limit?.amount_minor ?? null;
+    const inCreditMode  = creditEnabled && h5pct >= 100;
+
+    const dot  = document.getElementById("cug-5h-dot");
+    const lbl5 = document.getElementById("cug-5h-lbl");
+    const p5   = document.getElementById("cug-5h-pct");
+    const fill = document.getElementById("cug-5h-fill");
+    const rst5 = document.getElementById("cug-5h-rst");
+    const p7   = document.getElementById("cug-7d-pct");
+    const rst7 = document.getElementById("cug-7d-rst");
+
+    if (dot) {
+      dot.style.background = (creditEnabled && !inCreditMode) ? "#3b82f6" : c5;
+    }
+
+    if (inCreditMode) {
+      // Single blue bar showing % of credits remaining
+      const remainingMinor = creditLimit ? Math.max(0, creditLimit - creditUsed) : 0;
+      const remainPct = creditLimit ? Math.round((remainingMinor / creditLimit) * 100) : 0;
+
+      if (fill) {
+        fill.style.width = `${remainPct}%`;
+        fill.classList.add("cug-fill--credit");
+        fill.classList.remove("cug-fill--critical");
+      }
+
+      // Replace "Session 5h" label with "$X.XX (Y%) used · $Z.ZZ left"
+      if (lbl5 && p5 && rst5) {
+        const usedAmt  = formatMoney(creditUsed, creditDecimal);
+        const usedPct  = creditLimit ? Math.round((creditUsed / creditLimit) * 100) : 0;
+        const leftAmt  = creditLimit ? formatMoney(remainingMinor, creditDecimal) : "—";
+        lbl5.style.display = "none";
+        rst5.style.display = "none";
+        p5.textContent = `${usedAmt} (${usedPct}%) used · ${leftAmt} left`;
+        p5.classList.add("cug-5h-pct--credit");
+        p5.style.color = "";
+      }
+    } else {
+      if (fill) {
+        fill.style.width = `${Math.min(100, h5pct)}%`;
+        fill.style.background = c5;
+        fill.classList.remove("cug-fill--credit");
+        fill.classList.toggle("cug-fill--critical", h5pct >= 90);
+      }
+      if (lbl5) lbl5.style.display = "";
+      if (rst5) rst5.style.display = "";
+      if (p5) {
+        p5.textContent = `${Math.round(h5pct)}%`;
+        p5.style.color = c5;
+        p5.classList.remove("cug-5h-pct--credit");
+      }
+    }
+
+    if (p7)   { p7.textContent = `${Math.round(d7pct)}%`; p7.style.color = c7; }
+    if (rst7) rst7.textContent = formatReset(d.seven_day?.resets_at);
   }
 
   async function loadAndRender() {
     if (!gaugeEl) return;
     const d = await fetchUsage();
-    if (!d) return;
+    if (!d) { log("fetchUsage returned null"); return; }
+    log("5h:", d.five_hour?.utilization, "7d:", d.seven_day?.utilization);
     applyData(d);
     try { chrome.runtime.sendMessage({ type: "STORE_DATA", data: d }); } catch(e) {}
+    return d;
+  }
+
+  // Inject a fetch interceptor into the main world via a web-accessible script file.
+  // Using src= instead of inline textContent bypasses page CSP (works in Firefox too).
+  function injectStreamWatcher() {
+    const s = document.createElement("script");
+    s.src = chrome.runtime.getURL("injector.js");
+    (document.head || document.documentElement).appendChild(s);
+    s.onload = () => s.remove();
   }
 
   function isExcludedPage() {
@@ -148,11 +226,23 @@
   }
 
   function findComposer() {
+    // Claude Code: use specific testid, walk up to the surface card
+    const ccInput = document.querySelector('[data-testid="code-prompt-input"]');
+    if (ccInput) {
+      let el = ccInput;
+      for (let i = 0; i < 10; i++) {
+        if (!el.parentElement) break;
+        el = el.parentElement;
+        const cls = typeof el.className === "string" ? el.className : "";
+        if (cls.includes("bg-surface")) return el;
+      }
+    }
+
+    // Normal Claude: walk up to fieldset or rounded-composer
     const input = document.querySelector('[contenteditable="true"]')
                 || document.querySelector("textarea");
     if (!input) return null;
 
-    // Walk up: target the fieldset (input box boundary in current UI)
     let el = input;
     for (let i = 0; i < 12; i++) {
       if (!el.parentElement || el.parentElement.tagName === "BODY") break;
@@ -180,13 +270,7 @@
     if (!composer) return;
 
     gaugeEl = buildGauge();
-
-    if (isClaudeCode()) {
-      gaugeEl.style.marginTop = "6px";
-      composer.parentElement.insertBefore(gaugeEl, composer.nextSibling);
-    } else {
-      composer.appendChild(gaugeEl);
-    }
+    composer.appendChild(gaugeEl);
 
     log("Injected ✓", isClaudeCode() ? "(Claude Code)" : "(Claude normal)");
     if (lastData) applyData(lastData);
@@ -221,14 +305,32 @@
     }, 500);
   }
 
-  chrome.runtime.onMessage.addListener((msg) => {
-    if (msg.type === "RENDER_NOW" && msg.data) applyData(msg.data);
+  // Storage listener — fires immediately in both Chrome and Firefox when popup saves settings
+  chrome.storage.onChanged.addListener((changes) => {
+    if (changes.cugSettings?.newValue) {
+      cugSettings = { ...cugSettings, ...changes.cugSettings.newValue };
+      if (lastData) applyData(lastData);
+    }
+  });
+
+  chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+    if (msg.type === "RENDER_NOW" && msg.data) { applyData(msg.data); return; }
+    if (msg.type === "FETCH_AND_REPLY") {
+      loadAndRender().then(d => sendResponse(d || null));
+      return true; // async
+    }
+  });
+
+  // SSE stream ended → re-fetch usage after short delay (server needs ~500ms to update)
+  window.addEventListener("cug-stream-done", () => {
+    setTimeout(loadAndRender, 800);
   });
 
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") loadAndRender();
   });
 
+  injectStreamWatcher();
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else setTimeout(init, 600);
 

@@ -1,84 +1,28 @@
-/* gauge.css v10 */
+/* gauge.css v16 */
 
 #claude-usage-gauge {
-  --cug-bg:      rgba(255, 255, 255, 0.88);
-  --cug-border:  rgba(0, 0, 0, 0.09);
-  --cug-muted:   rgba(0, 0, 0, 0.38);
-  --cug-track:   rgba(0, 0, 0, 0.07);
-
   pointer-events: auto;
-  width: calc(100% - 16px);
-  margin: 6px 8px 2px;
-  padding: 8px 12px;
-  box-sizing: border-box;
-  background: var(--cug-bg);
-  border: 1px solid var(--cug-border);
-  border-radius: 10px;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-}
-
-@media (prefers-color-scheme: dark) {
-  #claude-usage-gauge {
-    --cug-bg:     rgba(28, 28, 30, 0.82);
-    --cug-border: rgba(255, 255, 255, 0.10);
-    --cug-muted:  rgba(255, 255, 255, 0.35);
-    --cug-track:  rgba(255, 255, 255, 0.08);
-  }
-}
-
-/* ── Two columns ── */
-.cug-cols {
-  display: flex;
-  align-items: stretch;
-  gap: 0;
-}
-
-.cug-col {
-  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 5px;
-  min-width: 0;
+  width: calc(100% - 16px);
+  margin: 4px 8px 2px;
+  padding: 2px 2px;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-.cug-sep {
-  width: 1px;
-  background: var(--cug-border);
-  margin: 0 12px;
-  flex-shrink: 0;
-}
-
-/* ── Top row: label + pct ── */
-.cug-col-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-}
-
-.cug-label {
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--cug-muted);
-}
-
-.cug-pct {
-  font-size: 15px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1;
-  transition: color 0.4s;
-}
-
-/* ── Progress bar ── */
+/* ── Full-width bar ── */
 .cug-track {
+  width: 100%;
   height: 4px;
-  background: var(--cug-track);
+  background: rgba(0, 0, 0, 0.08);
   border-radius: 999px;
   overflow: hidden;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cug-track { background: rgba(255, 255, 255, 0.10); }
 }
 
 .cug-fill {
@@ -88,26 +32,94 @@
   transition: width 0.9s cubic-bezier(0.16, 1, 0.3, 1), background 0.4s;
 }
 
-/* ── Reset time ── */
-.cug-rst {
-  font-size: 10px;
-  color: var(--cug-muted);
-  letter-spacing: 0.01em;
-  line-height: 1;
-  animation: cug-fade-in 0.3s ease;
+/* ── Info row ── */
+.cug-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-@keyframes cug-fade-in {
-  from { opacity: 0; transform: translateY(2px); }
-  to   { opacity: 1; transform: translateY(0); }
+/* Left block: dot + label + pct + reset */
+.cug-left {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+/* Right block: 7d text */
+.cug-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* Colored dot indicator */
+.cug-dot-ind {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background 0.4s;
+}
+
+.cug-label {
+  font-size: 11px;
+  font-weight: 400;
+  color: rgba(0, 0, 0, 0.45);
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cug-label { color: rgba(255, 255, 255, 0.40); }
+}
+
+.cug-pct {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1;
+  transition: color 0.4s;
+  flex-shrink: 0;
+}
+
+.cug-rst {
+  font-size: 10px;
+  color: rgba(0, 0, 0, 0.32);
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cug-rst { color: rgba(255, 255, 255, 0.28); }
+}
+
+.cug-sep-text {
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.25);
+  line-height: 1;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cug-sep-text { color: rgba(255, 255, 255, 0.20); }
 }
 
 /* ── Critical pulse (>= 90%) ── */
 @keyframes cug-pulse {
   0%, 100% { opacity: 1; }
-  50%       { opacity: 0.45; }
+  50%       { opacity: 0.4; }
 }
 
 .cug-fill--critical {
   animation: cug-pulse 1.4s ease-in-out infinite;
 }
+
+/* ── Credit mode (extra usage enabled or in overflow) ── */
+.cug-fill--credit {
+  background: #3b82f6 !important;
+  animation: none !important;
+}
+
+.cug-5h-pct--credit { color: #3b82f6 !important; }

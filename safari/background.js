@@ -1,11 +1,123 @@
-// background.js — Safari
-// Persiste les données dans storage.local pour survivre aux kills du service worker
+// background.js — Chrome MV3
 
-browser.runtime.onMessage.addListener((msg) => {
+const MAX_HISTORY = 24;
+
+function arcColor(pct, settings) {
+  const o = settings?.orangeAt ?? 50;
+  const r = settings?.redAt ?? 75;
+  if (pct < o) return "#16a34a";
+  if (pct < r) return "#d97706";
+  return "#dc2626";
+}
+
+async function updateIcon(data, cugSettings) {
+  const size = 128;
+  const canvas = new OffscreenCanvas(size, size);
+  const ctx = canvas.getContext("2d");
+
+  if (!cugSettings) {
+    const r = await chrome.storage.local.get("cugSettings");
+    cugSettings = r.cugSettings;
+  }
+  const pct = data ? Math.round(data.five_hour?.utilization ?? 0) : 0;
+  const cx = size / 2, cy = size / 2;
+  const r = 55, lw = 22;   // large ring, nearly fills the icon
+
+  // Track ring
+  ctx.strokeStyle = "rgba(120,120,120,0.22)";
+  ctx.lineWidth = lw;
+  ctx.lineCap = "butt";
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Filled arc (clockwise from top)
+  if (pct > 0) {
+    const start = -Math.PI / 2;
+    const end   = start + (Math.min(pct, 100) / 100) * Math.PI * 2;
+    ctx.strokeStyle = arcColor(pct, cugSettings);
+    ctx.lineWidth = lw;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, start, end);
+    ctx.stroke();
+  }
+
+  // No text in center — ring only
+
+  const imageData = ctx.getImageData(0, 0, size, size);
+  chrome.action.setIcon({ imageData: { 128: imageData } });
+
+  // Tooltip on hover
+  const d7pct = data ? Math.round(data.seven_day?.utilization ?? 0) : 0;
+  const title = pct > 0
+    ? `Claude Usage\n5h session: ${pct}%\n7-day: ${d7pct}%`
+    : "Claude Usage Tracker";
+  chrome.action.setTitle({ title });
+}
+
+async function appendHistory(data) {
+  const { usageHistory = [] } = await chrome.storage.local.get("usageHistory");
+  usageHistory.push({
+    t: Date.now(),
+    h5: Math.round(data.five_hour?.utilization ?? 0),
+    d7: Math.round(data.seven_day?.utilization ?? 0),
+  });
+  if (usageHistory.length > MAX_HISTORY) usageHistory.splice(0, usageHistory.length - MAX_HISTORY);
+  await chrome.storage.local.set({ usageHistory });
+}
+
+async function fetchUsage() {
+  try {
+    const orgsRes = await fetch("https://claude.ai/api/organizations", { credentials: "include" });
+    if (!orgsRes.ok) return null;
+    const orgs = await orgsRes.json();
+    const orgId = orgs?.[0]?.uuid || orgs?.[0]?.id;
+    if (!orgId) return null;
+    const res = await fetch(`https://claude.ai/api/organizations/${orgId}/usage`, { credentials: "include" });
+    if (!res.ok) return null;
+    const data = await res.json();
+    await chrome.storage.local.set({ usageData: data });
+    await updateIcon(data);
+    await appendHistory(data);
+    return data;
+  } catch(e) { return null; }
+}
+
+chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg.type === "STORE_DATA") {
-    return browser.storage.local.set({ usageData: msg.data }).then(() => ({ ok: true }));
+    chrome.storage.local.set({ usageData: msg.data }, async () => {
+      await updateIcon(msg.data);
+      await appendHistory(msg.data);
+      // Broadcast to all open claude.ai tabs so the gauge stays in sync
+      chrome.tabs.query({ url: "*://claude.ai/*" }, (tabs) => {
+        for (const t of tabs) {
+          chrome.tabs.sendMessage(t.id, { type: "RENDER_NOW", data: msg.data }).catch(() => {});
+        }
+      });
+      sendResponse({ ok: true });
+    });
+    return true;
   }
   if (msg.type === "GET_DATA") {
-    return browser.storage.local.get("usageData").then((result) => ({ data: result.usageData || null }));
+    chrome.storage.local.get(["usageData", "usageHistory"], (result) => {
+      sendResponse({ data: result.usageData || null, history: result.usageHistory || [] });
+    });
+    return true;
+  }
+  if (msg.type === "FETCH_NOW") {
+    fetchUsage().then((data) => sendResponse({ data }));
+    return true;
+  }
+  if (msg.type === "REFRESH_ICON") {
+    chrome.storage.local.get(["usageData", "cugSettings"], (r) => {
+      // Use settings from message if provided (avoids storage write race)
+      if (msg.settings) r.cugSettings = msg.settings;
+      updateIcon(r.usageData || null, r.cugSettings);
+    });
+    return false;
   }
 });
+
+// Restore icon on startup
+chrome.storage.local.get("usageData", ({ usageData }) => updateIcon(usageData || null));
