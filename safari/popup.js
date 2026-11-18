@@ -170,21 +170,25 @@ function renderBreakdown(data) {
   const rows = bd.rows.filter(r => r.percent > 0).sort((a, b) => b.percent - a.percent);
   if (!rows.length) { sec.style.display = "none"; return; }
 
-  rowsEl.innerHTML = "";
+  rowsEl.replaceChildren();
+  const el = (tag, cls, text) => {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined) e.textContent = text;
+    return e;
+  };
   for (const row of rows) {
-    const div = document.createElement("div");
-    div.className = "breakdown-row";
-    div.innerHTML =
-      `<div class="bd-row-top">` +
-        `<div class="bd-left">` +
-          `<span class="bd-dot"></span>` +
-          `<span class="breakdown-name">${row.display_name}</span>` +
-        `</div>` +
-        `<span class="breakdown-val">${row.percent}%</span>` +
-      `</div>` +
-      `<div class="bd-mini-track">` +
-        `<div class="bd-mini-fill" style="width:0%" data-pct="${row.percent}"></div>` +
-      `</div>`;
+    const div = el("div", "breakdown-row");
+    const top = el("div", "bd-row-top");
+    const left = el("div", "bd-left");
+    left.append(el("span", "bd-dot"), el("span", "breakdown-name", String(row.display_name ?? "")));
+    top.append(left, el("span", "breakdown-val", `${Number(row.percent)}%`));
+    const track = el("div", "bd-mini-track");
+    const fill = el("div", "bd-mini-fill");
+    fill.style.width = "0%";
+    fill.dataset.pct = String(Number(row.percent));
+    track.append(fill);
+    div.append(top, track);
     rowsEl.appendChild(div);
   }
   // Animate bars after paint
